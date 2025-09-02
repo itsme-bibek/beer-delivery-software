@@ -170,6 +170,56 @@
                 </div>
             </div>
 
+            <!-- Analytics Charts Section -->
+            <div class="flex flex-wrap mt-6 -mx-3">
+                <!-- Order Status Pie Chart -->
+                <div class="w-full px-3 mb-6 lg:mb-0 lg:w-1/2 lg:flex-none">
+                    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-lg rounded-2xl bg-clip-border">
+                        <div class="bg-gray-50 border-b border-gray-200 mb-0 rounded-t-2xl p-6 pb-0">
+                            <h6 class="text-lg font-semibold text-gray-800">Order Status Distribution</h6>
+                            <p class="text-sm text-slate-500 mt-1">Your orders breakdown by status</p>
+                        </div>
+                        <div class="flex-auto p-6">
+                            <div class="relative h-64">
+                                <canvas id="orderStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Trends Chart -->
+                <div class="w-full px-3 mb-6 lg:mb-0 lg:w-1/2 lg:flex-none">
+                    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-lg rounded-2xl bg-clip-border">
+                        <div class="bg-gray-50 border-b border-gray-200 mb-0 rounded-t-2xl p-6 pb-0">
+                            <h6 class="text-lg font-semibold text-gray-800">Monthly Order Trends</h6>
+                            <p class="text-sm text-slate-500 mt-1">Your order activity over the last 6 months</p>
+                        </div>
+                        <div class="flex-auto p-6">
+                            <div class="relative h-64">
+                                <canvas id="monthlyTrendsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Beer Popularity Chart -->
+            <div class="flex flex-wrap mt-6 -mx-3">
+                <div class="w-full px-3">
+                    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-lg rounded-2xl bg-clip-border">
+                        <div class="bg-gray-50 border-b border-gray-200 mb-0 rounded-t-2xl p-6 pb-0">
+                            <h6 class="text-lg font-semibold text-gray-800">Your Favorite Beers</h6>
+                            <p class="text-sm text-slate-500 mt-1">Most ordered beers by you</p>
+                        </div>
+                        <div class="flex-auto p-6">
+                            <div class="relative h-64">
+                                <canvas id="beerPopularityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- row 2 - Recent Orders and Recommendations -->
             <div class="flex flex-wrap mt-6 -mx-3">
                 <!-- Recent Orders -->
@@ -266,22 +316,20 @@
                                                 </td>
                                                 <td class="p-4 align-middle bg-transparent whitespace-nowrap text-center">
                                                     <div class="flex items-center justify-center gap-2">
+                                                        <button onclick="reorderGroup('{{ $groupCode }}')"
+                                                            class="text-orange-500 hover:text-orange-700 p-2 rounded-lg hover:bg-orange-50 transition"
+                                                            title="Reorder this order">
+                                                            <i class="fas fa-redo"></i>
+                                                        </button>
                                                         <a href="{{ route('invoice.print', $groupCode) }}"
                                                             class="text-indigo-500 hover:text-indigo-700 p-2 rounded-lg hover:bg-indigo-50 transition"
                                                             title="Preview/Print Invoice">
                                                             <i class="fas fa-print"></i>
                                                         </a>
-                                                        <a href="{{ route('my-orders') }}"
+                                                        <a href="{{ route('invoice.download', $groupCode) }}"
                                                             class="text-green-500 hover:text-green-700 p-2 rounded-lg hover:bg-green-50 transition"
                                                             title="Download Invoice">
                                                             <i class="fas fa-download"></i>
-                                                            Preview
-                                                        </a>
-                                                        <a href="{{ route('my-orders') }}"
-                                                            class="text-blue-500 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50 transition"
-                                                            title="View Details">
-                                                            <i class="fas fa-eye"></i>
-                                                            Download
                                                         </a>
                                                     </div>
                                                 </td>
@@ -389,7 +437,219 @@
                     </div>
                 </div>
             </div>
+
+            
         </div>
         <!-- end cards -->
     </main>
+
+    <script>
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+        });
+
+        // Chart initialization function
+        function initializeCharts() {
+            // Order Status Pie Chart
+            fetch('/user/analytics/order-status')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('orderStatusChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                data: data.data,
+                                backgroundColor: data.colors,
+                                borderWidth: 2,
+                                borderColor: '#fff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        padding: 20,
+                                        usePointStyle: true
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+
+            // Monthly Trends Chart
+            fetch('/user/analytics/monthly-trends')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('monthlyTrendsChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.months,
+                            datasets: [{
+                                label: 'Orders',
+                                data: data.orderCounts,
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }, {
+                                label: 'Amount ($)',
+                                data: data.orderAmounts,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    grid: {
+                                        drawOnChartArea: false,
+                                    },
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                }
+                            }
+                        }
+                    });
+                });
+
+            // Beer Popularity Chart
+            fetch('/user/analytics/beer-popularity')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('beerPopularityChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'Order Count',
+                                data: data.data,
+                                backgroundColor: [
+                                    'rgba(59, 130, 246, 0.8)',
+                                    'rgba(16, 185, 129, 0.8)',
+                                    'rgba(245, 158, 11, 0.8)',
+                                    'rgba(139, 92, 246, 0.8)',
+                                    'rgba(239, 68, 68, 0.8)'
+                                ],
+                                borderColor: [
+                                    'rgba(59, 130, 246, 1)',
+                                    'rgba(16, 185, 129, 1)',
+                                    'rgba(245, 158, 11, 1)',
+                                    'rgba(139, 92, 246, 1)',
+                                    'rgba(239, 68, 68, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                });
+        }
+
+        // Reorder functionality
+        function reorderGroup(groupCode) {
+            if (!confirm('Are you sure you want to reorder this order? This will create a new order with the same items.')) {
+                return;
+            }
+
+            // Show loading state
+            const button = event.target.closest('button');
+            const originalContent = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.disabled = true;
+
+            // Make AJAX request
+            fetch(`/user/reorder/${groupCode}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showToast('Order reordered successfully!', 'success');
+                    
+                    // Optionally redirect to orders page or refresh
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast(data.message || 'Failed to reorder. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred. Please try again.', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                button.innerHTML = originalContent;
+                button.disabled = false;
+            });
+        }
+
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500'
+            };
+            
+            toast.className = `fixed bottom-6 right-6 ${colors[type]} text-white text-sm px-4 py-3 rounded-lg shadow-lg z-50`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
 @endsection

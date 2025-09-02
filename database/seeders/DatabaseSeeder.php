@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             BeerSeeder::class,
             OrderSeeder::class,
+            MessageSeeder::class,
         ]);
     }
 }

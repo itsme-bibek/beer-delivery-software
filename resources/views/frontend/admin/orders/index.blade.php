@@ -18,7 +18,15 @@
                     </ol>
                     <h6 class="mb-0 font-bold capitalize">All Customer Orders</h6>
                 </nav>
-                <div class="flex items-center">
+                <div class="flex items-center space-x-2">
+                    <button id="bulk-delete-btn" 
+                        class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-red-600 to-pink-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hidden">
+                        Delete Selected
+                    </button>
+                    <button id="bulk-delete-btn" 
+                        class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-red-600 to-pink-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hidden">
+                        Delete Selected
+                    </button>
                     <a href="#"
                         class="px-4 py-2 mr-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
                         Export Orders
@@ -30,7 +38,7 @@
         <div class="w-full px-6 py-6 mx-auto">
             <!-- Order Filter -->
             <div class="flex flex-wrap items-center justify-between mb-6 -mx-3">
-                <div class="w-full px-3 mb-6 md:mb-0 md:w-1/2 lg:w-1/4">
+                <div class="w-full px-3 mb-6 md:mb-0 md:w-1/2 lg:w-1/6">
                     <div class="relative">
                         <select id="status-filter"
                             class="block w-full px-3 py-2 text-sm font-normal text-gray-700 transition-all bg-white border border-gray-200 rounded-lg outline-none focus:shadow-soft-primary-outline focus:border-fuchsia-300">
@@ -43,7 +51,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="w-full px-3 mb-6 md:mb-0 md:w-1/2 lg:w-1/4">
+                <div class="w-full px-3 mb-6 md:mb-0 md:w-1/2 lg:w-1/6">
                     <div class="relative">
                         <select id="payment-filter"
                             class="block w-full px-3 py-2 text-sm font-normal text-gray-700 transition-all bg-white border border-gray-200 rounded-lg outline-none focus:shadow-soft-primary-outline focus:border-fuchsia-300">
@@ -53,7 +61,34 @@
                         </select>
                     </div>
                 </div>
-                <div class="w-full px-3 md:w-1/2 lg:w-1/4">
+                <div class="w-full px-3 mb-6 md:mb-0 md:w-1/2 lg:w-1/6">
+                    <div class="relative">
+                        <select id="customer-filter"
+                            class="block w-full px-3 py-2 text-sm font-normal text-gray-700 transition-all bg-white border border-gray-200 rounded-lg outline-none focus:shadow-soft-primary-outline focus:border-fuchsia-300">
+                            <option value="">All Customers</option>
+                            @php
+                                $customers = \App\Models\User::whereHas('orders')->with('orders')->get()->unique('id');
+                            @endphp
+                            @foreach($customers as $customer)
+                                <option value="{{ $customer->name }}">{{ $customer->name }} ({{ $customer->email }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="w-full px-3 mb-6 md:mb-0 md:w-1/2 lg:w-1/6">
+                    <div class="relative">
+                        <select id="time-filter"
+                            class="block w-full px-3 py-2 text-sm font-normal text-gray-700 transition-all bg-white border border-gray-200 rounded-lg outline-none focus:shadow-soft-primary-outline focus:border-fuchsia-300">
+                            <option value="">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="quarter">This Quarter</option>
+                            <option value="year">This Year</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="w-full px-3 mb-6 md:mb-0 md:w-1/2 lg:w-1/6">
                     <div class="relative flex items-center">
                         <span class="absolute ml-2">
                             <i class="fas fa-calendar text-slate-400"></i>
@@ -61,6 +96,16 @@
                         <input type="text" id="date-range"
                             class="block w-full pl-8 pr-2 py-2 text-sm border border-gray-200 rounded-lg focus:shadow-soft-primary-outline focus:border-fuchsia-300"
                             placeholder="Select date range">
+                    </div>
+                </div>
+                <div class="w-full px-3 md:w-1/2 lg:w-1/6">
+                    <div class="relative">
+                        <span class="absolute ml-2">
+                            <i class="fas fa-search text-slate-400"></i>
+                        </span>
+                        <input type="text" id="search-orders"
+                            class="block w-full pl-8 pr-2 py-2 text-sm border border-gray-200 rounded-lg focus:shadow-soft-primary-outline focus:border-fuchsia-300"
+                            placeholder="Search orders, customers...">
                     </div>
                 </div>
                 <div class="w-full px-3 mt-3 md:mt-0 md:w-auto">
@@ -81,13 +126,16 @@
                                 <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
                                     <thead class="align-bottom">
                                         <tr>
+                                            <th class="px-6 py-3 font-bold tracking-normal text-left uppercase align-middle bg-transparent border-b letter border-b-solid text-xxs whitespace-nowrap border-b-gray-200 text-slate-400 opacity-70">
+                                                <input type="checkbox" id="select-all" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            </th>
                                             <th
                                                 class="px-6 py-3 font-bold tracking-normal text-left uppercase align-middle bg-transparent border-b letter border-b-solid text-xxs whitespace-nowrap border-b-gray-200 text-slate-400 opacity-70">
                                                 Order Group
                                             </th>
                                             <th
                                                 class="px-6 py-3 font-bold tracking-normal text-left uppercase align-middle bg-transparent border-b letter border-b-solid text-xxs whitespace-nowrap border-b-gray-200 text-slate-400 opacity-70">
-                                                Customer
+                                                Customer Name & Email
                                             </th>
                                             <th
                                                 class="px-6 py-3 font-bold tracking-normal text-center uppercase align-middle bg-transparent border-b letter border-b-solid text-xxs whitespace-nowrap border-b-gray-200 text-slate-400 opacity-70">
@@ -126,6 +174,9 @@
                                             @endphp
                                             <tr class="border-b border-gray-100 hover:bg-gray-50">
                                                 <td class="p-4 align-middle bg-transparent whitespace-nowrap">
+                                                    <input type="checkbox" class="order-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500" value="{{ $groupCode }}">
+                                                </td>
+                                                <td class="p-4 align-middle bg-transparent whitespace-nowrap">
                                                     <div class="flex items-center">
                                                         <div class="w-10 h-10 rounded-full bg-gradient-to-tl from-blue-500 to-cyan-400 flex items-center justify-center text-white text-sm font-bold mr-3">
                                                             <i class="fas fa-boxes"></i>
@@ -138,12 +189,13 @@
                                                 </td>
                                                 <td class="p-4 align-middle bg-transparent whitespace-nowrap">
                                                     <div class="flex items-center">
-                                                        <div class="w-8 h-8 rounded-full bg-gradient-to-tl from-green-500 to-emerald-400 flex items-center justify-center text-white text-sm font-bold mr-2">
+                                                        <div class="w-10 h-10 rounded-full bg-gradient-to-tl from-green-500 to-emerald-400 flex items-center justify-center text-white text-sm font-bold mr-3">
                                                             {{ strtoupper(substr($firstOrder->user->name, 0, 1)) }}
                                                         </div>
                                                         <div>
-                                                            <span class="text-sm font-semibold">{{ $firstOrder->user->name }}</span>
-                                                            <p class="text-xs text-slate-400">{{ $firstOrder->user->email }}</p>
+                                                            <span class="text-sm font-semibold text-gray-800">{{ $firstOrder->user->name }}</span>
+                                                            <p class="text-xs text-blue-600 font-medium">{{ $firstOrder->user->email }}</p>
+                                                            <p class="text-xs text-slate-400">Customer ID: {{ $firstOrder->user->id }}</p>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -215,17 +267,22 @@
                                                         </button>
                                                         @if($status !== 'Cancelled')
                                                         <button onclick="cancelOrderGroup('{{ $groupCode }}')"
-                                                            class="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50"
-                                                            title="Cancel All Orders">
-                                                            <i class="fas fa-times"></i>
+                                                            class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 border border-red-200 hover:border-red-300"
+                                                            title="Cancel Order Group (Sends Email)">
+                                                            <i class="fas fa-ban"></i>
                                                         </button>
                                                         @endif
+                                                        <button onclick="deleteOrderGroup('{{ $groupCode }}')"
+                                                            class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50"
+                                                            title="Delete Order Group">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="8" class="p-8 text-center text-slate-400">
+                                                <td colspan="9" class="p-8 text-center text-slate-400">
                                                     <div class="flex flex-col items-center">
                                                         <i class="fas fa-shopping-cart text-4xl mb-4 text-slate-300"></i>
                                                         <p class="text-lg font-semibold mb-2">No orders found</p>
@@ -291,13 +348,161 @@
     </div>
 
     <script>
+        // Select all functionality
+        document.getElementById('select-all').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.order-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkDeleteButton();
+        });
+
+        // Individual checkbox functionality
+        document.querySelectorAll('.order-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateBulkDeleteButton);
+        });
+
+        function updateBulkDeleteButton() {
+            const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
+            const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+            
+            if (checkedBoxes.length > 0) {
+                bulkDeleteBtn.classList.remove('hidden');
+                bulkDeleteBtn.textContent = `Delete Selected (${checkedBoxes.length})`;
+            } else {
+                bulkDeleteBtn.classList.add('hidden');
+            }
+        }
+
+        // Bulk delete functionality
+        document.getElementById('bulk-delete-btn').addEventListener('click', function() {
+            const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
+            const groupCodes = Array.from(checkedBoxes).map(cb => cb.value);
+            
+            if (groupCodes.length === 0) return;
+
+            Swal.fire({
+                title: 'Delete Selected Orders?',
+                text: `Are you sure you want to delete ${groupCodes.length} order group(s)? This action cannot be undone.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete them!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    bulkDeleteOrders(groupCodes);
+                }
+            });
+        });
+
+        function bulkDeleteOrders(groupCodes) {
+            fetch('/admin/orders/bulk-delete', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ groupCodes: groupCodes })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: data.message || 'Failed to delete orders'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Error deleting orders'
+                });
+            });
+        }
+
+        // Time filter functionality
+        document.getElementById('time-filter').addEventListener('change', function() {
+            const timeFilter = this.value;
+            const rows = document.querySelectorAll('tbody tr');
+            const now = new Date();
+            
+            rows.forEach(row => {
+                const dateCell = row.querySelector('td:nth-child(8) span');
+                if (!dateCell) return;
+                
+                const orderDate = new Date(dateCell.textContent);
+                let show = true;
+                
+                switch(timeFilter) {
+                    case 'today':
+                        show = orderDate.toDateString() === now.toDateString();
+                        break;
+                    case 'week':
+                        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        show = orderDate >= weekAgo;
+                        break;
+                    case 'month':
+                        const monthAgo = new Date(now.getFullYear(), now.getMonth(), 1);
+                        show = orderDate >= monthAgo;
+                        break;
+                    case 'quarter':
+                        const quarterStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+                        show = orderDate >= quarterStart;
+                        break;
+                    case 'year':
+                        const yearStart = new Date(now.getFullYear(), 0, 1);
+                        show = orderDate >= yearStart;
+                        break;
+                    default:
+                        show = true;
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+        });
+
+        // Search functionality
+        document.getElementById('search-orders').addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const customerName = row.querySelector('td:nth-child(3) span.text-sm')?.textContent.toLowerCase() || '';
+                const customerEmail = row.querySelector('td:nth-child(3) p.text-xs')?.textContent.toLowerCase() || '';
+                const orderGroup = row.querySelector('td:nth-child(2) span.text-sm')?.textContent.toLowerCase() || '';
+                
+                const matches = text.includes(query) || 
+                               customerName.includes(query) || 
+                               customerEmail.includes(query) || 
+                               orderGroup.includes(query);
+                
+                row.style.display = matches ? '' : 'none';
+            });
+        });
+
         // Status filter functionality
         document.getElementById('status-filter').addEventListener('change', function() {
             const status = this.value;
             const rows = document.querySelectorAll('tbody tr');
             
             rows.forEach(row => {
-                const statusCell = row.querySelector('td:nth-child(6) select');
+                const statusCell = row.querySelector('td:nth-child(7) select');
                 if (statusCell) {
                     const orderStatus = statusCell.value;
                     if (status === '' || orderStatus === status) {
@@ -315,10 +520,28 @@
             const rows = document.querySelectorAll('tbody tr');
             
             rows.forEach(row => {
-                const paymentCell = row.querySelector('td:nth-child(5) span');
+                const paymentCell = row.querySelector('td:nth-child(6) span');
                 if (paymentCell) {
                     const orderPayment = paymentCell.textContent.toLowerCase();
                     if (payment === '' || orderPayment.includes(payment)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        });
+
+        // Customer filter functionality
+        document.getElementById('customer-filter').addEventListener('change', function() {
+            const customer = this.value;
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const customerNameCell = row.querySelector('td:nth-child(3) span.text-sm');
+                if (customerNameCell) {
+                    const customerName = customerNameCell.textContent.trim();
+                    if (customer === '' || customerName === customer) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
@@ -366,6 +589,57 @@
             });
         }
 
+        // Delete individual order group
+        function deleteOrderGroup(groupCode) {
+            Swal.fire({
+                title: 'Delete Order Group?',
+                text: `Are you sure you want to delete order group ${groupCode}? This action cannot be undone.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/admin/orders/group/${groupCode}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: data.message || 'Failed to delete order'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Error deleting order'
+                        });
+                    });
+                }
+            });
+        }
+
         // View order details
         function viewOrderDetails(groupCode) {
             // This would typically fetch order details via AJAX
@@ -388,7 +662,7 @@
         function cancelOrderGroup(groupCode) {
             Swal.fire({
                 title: 'Cancel Order Group?',
-                text: `Are you sure you want to cancel all orders in group ${groupCode}?`,
+                text: `Are you sure you want to cancel all orders in group ${groupCode}? This will send a cancellation email to the customer.`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
@@ -396,7 +670,41 @@
                 confirmButtonText: 'Yes, cancel all!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    updateGroupStatus(groupCode, 'Cancelled');
+                    fetch(`/admin/orders/group/${groupCode}/cancel`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Order Cancelled!',
+                                text: data.message,
+                                timer: 3000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: data.message || 'Failed to cancel order'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Error cancelling order'
+                        });
+                    });
                 }
             });
         }
@@ -405,12 +713,23 @@
         document.getElementById('reset-filters').addEventListener('click', function() {
             document.getElementById('status-filter').value = '';
             document.getElementById('payment-filter').value = '';
+            document.getElementById('customer-filter').value = '';
+            document.getElementById('time-filter').value = '';
             document.getElementById('date-range').value = '';
+            document.getElementById('search-orders').value = '';
+            document.getElementById('select-all').checked = false;
             
             const rows = document.querySelectorAll('tbody tr');
             rows.forEach(row => {
                 row.style.display = '';
             });
+            
+            const checkboxes = document.querySelectorAll('.order-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            updateBulkDeleteButton();
         });
 
         // Close modal when clicking outside

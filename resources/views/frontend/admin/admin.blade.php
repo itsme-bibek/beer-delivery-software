@@ -59,6 +59,8 @@
 
         <!-- end Navbar -->
 
+        
+
         <!-- cards -->
         <div class="w-full px-6 py-6 mx-auto">
             <!-- row 1 - Summary Cards -->
@@ -176,6 +178,56 @@
                                         <i class="fas fa-dollar-sign text-lg relative top-3.5 text-white"></i>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Charts Section -->
+            <div class="flex flex-wrap mt-6 -mx-3">
+                <!-- Order Status Pie Chart -->
+                <div class="w-full px-3 mb-6 lg:mb-0 lg:w-1/2 lg:flex-none">
+                    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-lg rounded-2xl bg-clip-border">
+                        <div class="bg-gray-50 border-b border-gray-200 mb-0 rounded-t-2xl p-6 pb-0">
+                            <h6 class="text-lg font-semibold text-gray-800">All Orders Status Distribution</h6>
+                            <p class="text-sm text-slate-500 mt-1">System-wide order status breakdown</p>
+                        </div>
+                        <div class="flex-auto p-6">
+                            <div class="relative h-64">
+                                <canvas id="adminOrderStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Trends Chart -->
+                <div class="w-full px-3 mb-6 lg:mb-0 lg:w-1/2 lg:flex-none">
+                    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-lg rounded-2xl bg-clip-border">
+                        <div class="bg-gray-50 border-b border-gray-200 mb-0 rounded-t-2xl p-6 pb-0">
+                            <h6 class="text-lg font-semibold text-gray-800">Monthly Business Trends</h6>
+                            <p class="text-sm text-slate-500 mt-1">System-wide order activity over the last 6 months</p>
+                        </div>
+                        <div class="flex-auto p-6">
+                            <div class="relative h-64">
+                                <canvas id="adminMonthlyTrendsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popular Beers Chart -->
+            <div class="flex flex-wrap mt-6 -mx-3">
+                <div class="w-full px-3">
+                    <div class="relative flex flex-col min-w-0 break-words bg-white shadow-lg rounded-2xl bg-clip-border">
+                        <div class="bg-gray-50 border-b border-gray-200 mb-0 rounded-t-2xl p-6 pb-0">
+                            <h6 class="text-lg font-semibold text-gray-800">Most Popular Beers</h6>
+                            <p class="text-sm text-slate-500 mt-1">Top ordered beers across all users</p>
+                        </div>
+                        <div class="flex-auto p-6">
+                            <div class="relative h-64">
+                                <canvas id="adminBeerPopularityChart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -388,7 +440,146 @@
                 </div>
             </div>
 
+            
+
         </div>
         <!-- end cards -->
     </main>
+
+    <script>
+        // Initialize admin charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAdminCharts();
+        });
+
+        // Admin chart initialization function
+        function initializeAdminCharts() {
+            // Fetch admin analytics data
+            fetch('/admin/analytics/admin')
+                .then(response => response.json())
+                .then(data => {
+                    // Order Status Pie Chart
+                    const statusCtx = document.getElementById('adminOrderStatusChart').getContext('2d');
+                    new Chart(statusCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.statusAnalytics.labels,
+                            datasets: [{
+                                data: data.statusAnalytics.data,
+                                backgroundColor: data.statusAnalytics.colors,
+                                borderWidth: 2,
+                                borderColor: '#fff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        padding: 20,
+                                        usePointStyle: true
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Monthly Trends Chart
+                    const trendsCtx = document.getElementById('adminMonthlyTrendsChart').getContext('2d');
+                    new Chart(trendsCtx, {
+                        type: 'line',
+                        data: {
+                            labels: data.monthlyTrends.months,
+                            datasets: [{
+                                label: 'Orders',
+                                data: data.monthlyTrends.orderCounts,
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }, {
+                                label: 'Revenue ($)',
+                                data: data.monthlyTrends.orderAmounts,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    grid: {
+                                        drawOnChartArea: false,
+                                    },
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                }
+                            }
+                        }
+                    });
+
+                    // Beer Popularity Chart
+                    const beerCtx = document.getElementById('adminBeerPopularityChart').getContext('2d');
+                    new Chart(beerCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.popularBeers.labels,
+                            datasets: [{
+                                label: 'Order Count',
+                                data: data.popularBeers.data,
+                                backgroundColor: [
+                                    'rgba(59, 130, 246, 0.8)',
+                                    'rgba(16, 185, 129, 0.8)',
+                                    'rgba(245, 158, 11, 0.8)',
+                                    'rgba(139, 92, 246, 0.8)',
+                                    'rgba(239, 68, 68, 0.8)'
+                                ],
+                                borderColor: [
+                                    'rgba(59, 130, 246, 1)',
+                                    'rgba(16, 185, 129, 1)',
+                                    'rgba(245, 158, 11, 1)',
+                                    'rgba(139, 92, 246, 1)',
+                                    'rgba(239, 68, 68, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                });
+        }
+    </script>
 @endsection

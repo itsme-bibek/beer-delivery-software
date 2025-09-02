@@ -9,6 +9,8 @@ use App\Http\Controllers\User\OrderController;
 use App\Http\Controllers\User\UserOrderController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\MessageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +56,25 @@ Route::middleware(['auth'])->prefix('user')->group(function () {
 	Route::get('/invoice/{groupCode}', [OrderController::class, 'downloadInvoice'])->name('invoice.download');
 	// Invoice Print
 	Route::get('/invoice/print/{groupCode}', [OrderController::class, 'printInvoice'])->name('invoice.print');
+	// Reorder
+	Route::post('/reorder/{groupCode}', [OrderController::class, 'reorder'])->name('orders.reorder');
+	// Get beer stock
+	Route::get('/beer-stock/{beer}', [OrderController::class, 'getBeerStock'])->name('beer.stock');
+	// Analytics
+	Route::get('/analytics/order-status', [AnalyticsController::class, 'getOrderStatusAnalytics'])->name('analytics.order-status');
+	Route::get('/analytics/monthly-trends', [AnalyticsController::class, 'getMonthlyTrends'])->name('analytics.monthly-trends');
+	Route::get('/analytics/beer-popularity', [AnalyticsController::class, 'getBeerPopularity'])->name('analytics.beer-popularity');
+	// Delete Order Group
+	Route::delete('/orders/group/{groupCode}', [OrderController::class, 'deleteOrderGroup'])->name('orders.group.delete');
+	// Bulk Delete Orders
+	Route::delete('/orders/bulk-delete', [OrderController::class, 'bulkDeleteOrders'])->name('orders.bulk-delete');
+	// Message Admin
+	Route::post('/message-admin', [MessageController::class, 'sendMessage'])->name('message.admin');
+	// User Messages
+	Route::get('/messages', [MessageController::class, 'index'])->name('user.messages.index');
+	Route::get('/messages/{message}', [MessageController::class, 'show'])->name('user.messages.show');
+	Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('user.messages.destroy');
+	Route::delete('/messages/bulk-delete', [MessageController::class, 'bulkDelete'])->name('user.messages.bulk-delete');
 });
 
 /*
@@ -80,4 +101,27 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 	// Group Order Status Update
 	Route::put('/orders/group/{groupCode}/status', [AdminOrderController::class, 'updateGroupStatus'])->name('orders.group.status');
+	// Cancel Order Group
+	Route::post('/orders/group/{groupCode}/cancel', [AdminOrderController::class, 'cancelOrderGroup'])->name('orders.group.cancel');
+	// Delete Order Group
+	Route::delete('/orders/group/{groupCode}', [AdminOrderController::class, 'deleteOrderGroup'])->name('orders.group.delete');
+	// Bulk Delete Orders
+	Route::delete('/orders/bulk-delete', [AdminOrderController::class, 'bulkDeleteOrders'])->name('orders.bulk-delete');
+	// Admin Analytics
+	Route::get('/analytics/admin', [AnalyticsController::class, 'getAdminAnalytics'])->name('analytics.admin');
+	
+	// Messages Management
+	Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+	Route::get('/messages/{message}', [MessageController::class, 'show'])->name('messages.show');
+	Route::post('/messages/{message}/reply', [MessageController::class, 'reply'])->name('messages.reply');
+	Route::put('/messages/{message}/read', [MessageController::class, 'markAsRead'])->name('messages.read');
+	Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
+	Route::delete('/messages/bulk-delete', [MessageController::class, 'bulkDelete'])->name('messages.bulk-delete');
+	
+	// User Management
+	Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+	Route::get('/users/{user}', [App\Http\Controllers\Admin\UserController::class, 'show'])->name('users.show');
+	Route::put('/users/{user}/role', [App\Http\Controllers\Admin\UserController::class, 'updateRole'])->name('users.update-role');
+	Route::delete('/users/{user}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
+	Route::delete('/users/bulk-delete', [App\Http\Controllers\Admin\UserController::class, 'bulkDelete'])->name('users.bulk-delete');
 });

@@ -74,14 +74,45 @@
                                     </div>
                                     <h5 class="text-lg font-bold">{{ $beer->name }}</h5>
                                     <p class="text-sm text-slate-500 mb-3">{{ $beer->description }}</p>
+                                    
+                                    <!-- Stock Information -->
+                                    <div class="mb-3">
+                                        @php
+                                            $availabilityStatus = $beer->getAvailabilityStatus();
+                                            $stockColors = [
+                                                'in_stock' => 'text-green-600 bg-green-100',
+                                                'low_stock' => 'text-orange-600 bg-orange-100',
+                                                'out_of_stock' => 'text-red-600 bg-red-100',
+                                                'inactive' => 'text-gray-600 bg-gray-100'
+                                            ];
+                                            $stockTexts = [
+                                                'in_stock' => 'In Stock',
+                                                'low_stock' => 'Low Stock',
+                                                'out_of_stock' => 'Out of Stock',
+                                                'inactive' => 'Unavailable'
+                                            ];
+                                            $stockColor = $stockColors[$availabilityStatus] ?? 'text-gray-600 bg-gray-100';
+                                            $stockText = $stockTexts[$availabilityStatus] ?? 'Unknown';
+                                        @endphp
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs font-semibold">ABV: {{ $beer->alcohol_percentage }}%</span>
+                                            <span class="text-xs px-2 py-1 rounded-full {{ $stockColor }} font-semibold">
+                                                {{ $stockText }} ({{ $beer->stock }})
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="flex items-center justify-between">
-                                        <span class="text-xs font-semibold">ABV: {{ $beer->alcohol_percentage }}%</span>
+                                        <span class="text-sm font-semibold text-slate-600">
+                                            Stock: {{ $beer->stock }} bottles
+                                        </span>
                                         <button
-                                            class="bg-gradient-to-tl from-blue-600 to-cyan-400 text-white text-xs font-bold px-3 py-2 rounded-lg add-to-cart"
+                                            class="bg-gradient-to-tl from-blue-600 to-cyan-400 text-white text-xs font-bold px-3 py-2 rounded-lg add-to-cart {{ !$beer->isAvailable() ? 'opacity-50 cursor-not-allowed' : '' }}"
                                             data-id="{{ $beer->id }}" data-name="{{ $beer->name }}"
-                                            data-price="{{ $beer->price }}"
-                                            data-image="{{ asset('storage/' . $beer->image) }}">
-                                            Add to Cart
+                                            data-price="{{ $beer->price }}" data-stock="{{ $beer->stock }}"
+                                            data-image="{{ asset('storage/' . $beer->image) }}"
+                                            {{ !$beer->isAvailable() ? 'disabled' : '' }}>
+                                            {{ $beer->isAvailable() ? 'Add to Cart' : 'Out of Stock' }}
                                         </button>
                                     </div>
                                 </div>
@@ -192,6 +223,7 @@
                         name: addBtn.dataset.name,
                         price: Number(addBtn.dataset.price),
                         image: addBtn.dataset.image,
+                        stock: Number(addBtn.dataset.stock),
                     };
                     addToCart(beer);
                     return;
@@ -270,9 +302,20 @@
             });
 
             function addToCart(beer) {
+                // Check if beer is available
+                if (beer.stock <= 0) {
+                    toast(`${beer.name} is out of stock`, 'error');
+                    return;
+                }
+
                 // merge by unique beer id only; distinct beers will be separate entries
                 const existing = cart.find(i => i.id === beer.id);
                 if (existing) {
+                    // Check if adding one more would exceed stock
+                    if (existing.quantity >= beer.stock) {
+                        toast(`Only ${beer.stock} ${beer.name} available in stock`, 'error');
+                        return;
+                    }
                     existing.quantity += 1;
                 } else {
                     cart.push({
@@ -287,9 +330,19 @@
             function updateQty(id, delta) {
                 const item = cart.find(i => i.id === id);
                 if (!item) return;
-                item.quantity += delta;
-                if (item.quantity <= 0) {
+                
+                const newQuantity = item.quantity + delta;
+                
+                // Check stock limits
+                if (newQuantity > item.stock) {
+                    toast(`Only ${item.stock} ${item.name} available in stock`, 'error');
+                    return;
+                }
+                
+                if (newQuantity <= 0) {
                     cart = cart.filter(i => i.id !== id);
+                } else {
+                    item.quantity = newQuantity;
                 }
                 renderCart();
             }
@@ -325,12 +378,14 @@
                             <div class="ml-3">
                                 <h6 class="text-sm font-semibold">${item.name}</h6>
                                 <p class="text-xs text-slate-500">${currency(item.price)} each</p>
+                                <p class="text-xs text-slate-400">Stock: ${item.stock} available</p>
                             </div>
                         </div>
                         <div class="flex items-center">
                             <button class="w-6 h-6 rounded-full bg-slate-200 text-xs font-bold" data-action="dec" data-id="${item.id}">-</button>
                             <span class="mx-2 text-sm font-semibold">${item.quantity}</span>
-                            <button class="w-6 h-6 rounded-full bg-slate-200 text-xs font-bold" data-action="inc" data-id="${item.id}">+</button>
+                            <button class="w-6 h-6 rounded-full bg-slate-200 text-xs font-bold ${item.quantity >= item.stock ? 'opacity-50 cursor-not-allowed' : ''}" 
+                                data-action="inc" data-id="${item.id}" ${item.quantity >= item.stock ? 'disabled' : ''}>+</button>
                             <button class="ml-3 text-red-500 text-sm" data-action="remove" data-id="${item.id}">
                                 <i class="fas fa-trash"></i>
                             </button>

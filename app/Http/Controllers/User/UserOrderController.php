@@ -25,7 +25,10 @@ class UserOrderController extends Controller
 
     public function buybeer()
     {
-        $beers = Beer::latest()->get();
+        $beers = Beer::where('status', 'active')
+            ->where('stock', '>', 0)
+            ->latest()
+            ->get();
         return view('frontend.users.buybeer.buybeer', compact('beers'));
     }
 }

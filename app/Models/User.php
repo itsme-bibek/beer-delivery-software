@@ -70,4 +70,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class);
     }
+
+    /**
+     * User's messages relationship
+     */
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
 }

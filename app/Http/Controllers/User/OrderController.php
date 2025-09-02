@@ -37,16 +37,31 @@ class OrderController extends Controller
 
         $beer = Beer::findOrFail($request->beer_id);
 
-        $order = Order::create([
-            'user_id'     => $request->user()->id,
-            'beer_id'     => $beer->id,
-            'quantity'    => $request->quantity,
-            'total_price' => $beer->price * $request->quantity,
-            'status'      => 'Pending',
-            'image'       => $beer->image ?? 'default-beer-image.jpg',
-            'group_code'  => 'ORD-' . Str::random(8),
-            'payment_method' => 'cod',
-        ]);
+        // Check if beer is available and has enough stock
+        if (!$beer->isAvailable()) {
+            return redirect()->back()->with('error', 'This beer is currently unavailable.');
+        }
+
+        if ($beer->stock < $request->quantity) {
+            return redirect()->back()->with('error', "Only {$beer->stock} bottles of {$beer->name} are available in stock.");
+        }
+
+        DB::transaction(function () use ($request, $beer) {
+            // Create the order
+            Order::create([
+                'user_id'     => $request->user()->id,
+                'beer_id'     => $beer->id,
+                'quantity'    => $request->quantity,
+                'total_price' => $beer->price * $request->quantity,
+                'status'      => 'Pending',
+                'image'       => $beer->image ?? 'default-beer-image.jpg',
+                'group_code'  => 'ORD-' . Str::random(8),
+                'payment_method' => 'cod',
+            ]);
+
+            // Reduce beer stock
+            $beer->decrement('stock', $request->quantity);
+        });
 
         return redirect()->route('orders.index')->with('success', 'Order placed successfully!');
     }
@@ -60,11 +75,34 @@ class OrderController extends Controller
             'payment_method'       => 'required|in:cod,card',
         ]);
 
+        // First, validate all items have enough stock
+        $validationErrors = [];
+        $beers = [];
+        
+        foreach ($request->items as $item) {
+            $beer = Beer::findOrFail($item['beer_id']);
+            $beers[$item['beer_id']] = $beer;
+            
+            if (!$beer->isAvailable()) {
+                $validationErrors[] = "{$beer->name} is currently unavailable.";
+            } elseif ($beer->stock < $item['quantity']) {
+                $validationErrors[] = "Only {$beer->stock} bottles of {$beer->name} are available in stock.";
+            }
+        }
+
+        if (!empty($validationErrors)) {
+            return response()->json([
+                'success' => false, 
+                'message' => implode(' ', $validationErrors)
+            ], 400);
+        }
+
         $groupCode = 'ORD-' . Str::random(8);
 
-        DB::transaction(function () use ($request, $groupCode) {
+        DB::transaction(function () use ($request, $groupCode, $beers) {
             foreach ($request->items as $item) {
-                $beer = Beer::findOrFail($item['beer_id']);
+                $beer = $beers[$item['beer_id']];
+                
                 Order::create([
                     'user_id'     => $request->user()->id,
                     'beer_id'     => $beer->id,
@@ -75,6 +113,9 @@ class OrderController extends Controller
                     'group_code'  => $groupCode,
                     'payment_method' => $request->payment_method,
                 ]);
+
+                // Reduce beer stock
+                $beer->decrement('stock', (int) $item['quantity']);
             }
         });
 
@@ -146,5 +187,127 @@ class OrderController extends Controller
             'paymentMethod',
             'groupCode'
         ));
+    }
+
+    public function reorder($groupCode, Request $request)
+    {
+        // Get the original order group
+        $originalOrders = Order::where('group_code', $groupCode)
+            ->where('user_id', $request->user()->id)
+            ->with('beer')
+            ->get();
+
+        if ($originalOrders->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
+        }
+
+        // Check if all beers are still available and have enough stock
+        $unavailableBeers = [];
+        foreach ($originalOrders as $order) {
+            if (!$order->beer || !$order->beer->isAvailable()) {
+                $unavailableBeers[] = $order->beer->name ?? 'Unknown Beer';
+            } elseif ($order->beer->stock < $order->quantity) {
+                $unavailableBeers[] = "{$order->beer->name} (only {$order->beer->stock} available, need {$order->quantity})";
+            }
+        }
+
+        if (!empty($unavailableBeers)) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Some items are no longer available: ' . implode(', ', $unavailableBeers)
+            ], 400);
+        }
+
+        // Create new order group
+        $newGroupCode = 'ORD-' . Str::random(8);
+        $paymentMethod = $originalOrders->first()->payment_method;
+
+        DB::transaction(function () use ($originalOrders, $newGroupCode, $paymentMethod, $request) {
+            foreach ($originalOrders as $originalOrder) {
+                Order::create([
+                    'user_id'     => $request->user()->id,
+                    'beer_id'     => $originalOrder->beer_id,
+                    'quantity'    => $originalOrder->quantity,
+                    'total_price' => $originalOrder->total_price,
+                    'status'      => 'Pending',
+                    'image'       => $originalOrder->image,
+                    'group_code'  => $newGroupCode,
+                    'payment_method' => $paymentMethod,
+                ]);
+
+                // Reduce beer stock
+                $originalOrder->beer->decrement('stock', $originalOrder->quantity);
+            }
+        });
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'Order reordered successfully!',
+            'group_code' => $newGroupCode
+        ]);
+    }
+
+    public function getBeerStock(Beer $beer)
+    {
+        return response()->json([
+            'id' => $beer->id,
+            'name' => $beer->name,
+            'stock' => $beer->stock,
+            'is_available' => $beer->isAvailable(),
+            'availability_status' => $beer->getAvailabilityStatus()
+        ]);
+    }
+
+    public function deleteOrderGroup(Request $request, $groupCode)
+    {
+        $orders = Order::where('group_code', $groupCode)
+            ->where('user_id', $request->user()->id)
+            ->get();
+        
+        if ($orders->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order group not found'
+            ], 404);
+        }
+
+        // Delete all orders in the group
+        foreach ($orders as $order) {
+            $order->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order group deleted successfully!'
+        ]);
+    }
+
+    public function bulkDeleteOrders(Request $request)
+    {
+        $request->validate([
+            'groupCodes' => 'required|array',
+            'groupCodes.*' => 'string'
+        ]);
+
+        $groupCodes = $request->groupCodes;
+        $deletedCount = 0;
+
+        foreach ($groupCodes as $groupCode) {
+            $orders = Order::where('group_code', $groupCode)
+                ->where('user_id', $request->user()->id)
+                ->get();
+            
+            if ($orders->isNotEmpty()) {
+                foreach ($orders as $order) {
+                    $order->delete();
+                }
+                $deletedCount++;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully deleted {$deletedCount} order group(s)!"
+        ]);
     }
 }

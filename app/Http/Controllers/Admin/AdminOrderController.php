@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\OrderStatusUpdated;
+use App\Mail\OrderCancelled;
 
 class AdminOrderController extends Controller
 {
@@ -114,5 +115,96 @@ class AdminOrderController extends Controller
         }
 
         return redirect()->route('admin.orders.index')->with('success', 'Order deleted!');
+    }
+
+    public function deleteOrderGroup(Request $request, $groupCode)
+    {
+        $orders = Order::where('group_code', $groupCode)->get();
+        
+        if ($orders->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order group not found'
+            ], 404);
+        }
+
+        // Delete all orders in the group
+        foreach ($orders as $order) {
+            $order->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order group deleted successfully!'
+        ]);
+    }
+
+    public function bulkDeleteOrders(Request $request)
+    {
+        $request->validate([
+            'groupCodes' => 'required|array',
+            'groupCodes.*' => 'string'
+        ]);
+
+        $groupCodes = $request->groupCodes;
+        $deletedCount = 0;
+
+        foreach ($groupCodes as $groupCode) {
+            $orders = Order::where('group_code', $groupCode)->get();
+            if ($orders->isNotEmpty()) {
+                foreach ($orders as $order) {
+                    $order->delete();
+                }
+                $deletedCount++;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully deleted {$deletedCount} order group(s)!"
+        ]);
+    }
+
+    public function cancelOrderGroup(Request $request, $groupCode)
+    {
+        $orders = Order::where('group_code', $groupCode)->with('user')->get();
+        
+        if ($orders->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order group not found'
+            ], 404);
+        }
+
+        // Update all orders in the group to cancelled status
+        foreach ($orders as $order) {
+            $order->update(['status' => 'Cancelled']);
+        }
+
+        // Send cancellation email to the user
+        $first = $orders->first();
+        if ($first && $first->user && $first->user->email) {
+            try {
+                Mail::to($first->user->email)->send(new OrderCancelled(
+                    $groupCode,
+                    $orders
+                ));
+                Log::info('Order cancellation email sent', [
+                    'group_code' => $groupCode,
+                    'to' => $first->user->email,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Failed to send order cancellation email', [
+                    'error' => $e->getMessage(),
+                    'group_code' => $groupCode,
+                    'to' => $first->user->email,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order group cancelled successfully! Cancellation email sent to customer.'
+        ]);
     }
 }

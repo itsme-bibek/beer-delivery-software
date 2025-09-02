@@ -24,7 +24,7 @@
         <div class="w-full px-6 py-6 mx-auto">
             <!-- Order Filters -->
             <div class="flex flex-wrap items-center justify-between mb-6 -mx-3">
-                <div class="w-full px-3 mb-3 md:mb-0 md:w-1/2 lg:w-1/3">
+                <div class="w-full px-3 mb-3 md:mb-0 md:w-1/2 lg:w-1/6">
                     <div class="relative">
                         <label for="status-filter" class="sr-only">Filter by status</label>
                         <select id="status-filter"
@@ -38,7 +38,20 @@
                         </select>
                     </div>
                 </div>
-                <div class="w-full px-3 mb-3 md:mb-0 md:w-1/2 lg:w-1/3">
+                <div class="w-full px-3 mb-3 md:mb-0 md:w-1/2 lg:w-1/6">
+                    <div class="relative">
+                        <select id="time-filter"
+                            class="block w-full px-3 py-2 text-sm font-normal text-gray-700 transition-all bg-white border border-gray-200 rounded-lg outline-none focus:shadow-soft-primary-outline focus:border-fuchsia-300">
+                            <option value="">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="quarter">This Quarter</option>
+                            <option value="year">This Year</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="w-full px-3 mb-3 md:mb-0 md:w-1/2 lg:w-1/6">
                     <div class="relative">
                         <span class="absolute left-3 top-2.5 text-slate-400">
                             <i class="fas fa-search"></i>
@@ -49,15 +62,27 @@
                             placeholder="Search by order group...">
                     </div>
                 </div>
-                <div class="w-full px-3 md:w-auto">
+                <div class="w-full px-3 mb-3 md:mb-0 md:w-1/2 lg:w-1/6">
                     <div class="relative flex items-center">
                         <span class="absolute ml-2">
                             <i class="fas fa-calendar text-slate-400"></i>
                         </span>
-                        <input type="text"
+                        <input type="text" id="date-range"
                             class="pl-8 pr-2 py-2 text-sm border border-gray-200 rounded-lg focus:shadow-soft-primary-outline focus:border-fuchsia-300"
                             placeholder="Select date range">
                     </div>
+                </div>
+                <div class="w-full px-3 md:w-1/2 lg:w-1/6">
+                    <button id="bulk-delete-btn" 
+                        class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-red-600 to-pink-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hidden">
+                        Delete Selected
+                    </button>
+                </div>
+                <div class="w-full px-3 mt-3 md:mt-0 md:w-auto">
+                    <button id="reset-filters"
+                        class="px-4 py-2 text-sm font-normal text-gray-700 transition-all bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
+                        Reset Filters
+                    </button>
                 </div>
             </div>
 
@@ -70,6 +95,9 @@
                                 <table class="min-w-full mb-0 align-top border-gray-200 text-slate-500">
                                     <thead class="bg-gray-50">
                                         <tr>
+                                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                <input type="checkbox" id="select-all" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            </th>
                                             <th
                                                 class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                                 Order Group
@@ -110,6 +138,9 @@
                                                 $paymentMethod = $firstOrder->payment_method;
                                             @endphp
                                             <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                                <td class="px-6 py-4 align-middle whitespace-nowrap">
+                                                    <input type="checkbox" class="order-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500" value="{{ $groupCode }}">
+                                                </td>
                                                 <td class="px-6 py-4 align-middle whitespace-nowrap">
                                                     <div class="flex items-center gap-3">
                                                         <div
@@ -195,6 +226,12 @@
                                                 </td>
                                                 <td class="px-6 py-4 align-middle text-center whitespace-nowrap">
                                                     <div class="flex items-center justify-center gap-2">
+                                                        <button onclick="reorderGroup('{{ $groupCode }}')"
+                                                            class="inline-flex items-center gap-1 text-orange-600 hover:text-orange-800 px-3 py-1.5 rounded-lg hover:bg-orange-50 border border-orange-100"
+                                                            title="Reorder this order">
+                                                            <i class="fas fa-redo"></i>
+                                                            <span class="hidden sm:inline">Reorder</span>
+                                                        </button>
                                                         <a href="{{ route('invoice.print', $groupCode) }}"
                                                             class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 px-3 py-1.5 rounded-lg hover:bg-indigo-50 border border-indigo-100"
                                                             title="Preview/Print Invoice">
@@ -207,12 +244,24 @@
                                                             <i class="fas fa-download"></i>
                                                             <span class="hidden sm:inline">Download</span>
                                                         </a>
+                                                        <button onclick="messageAdmin('{{ $groupCode }}', '{{ $firstOrder->user->name }}')"
+                                                            class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 px-3 py-1.5 rounded-lg hover:bg-blue-50 border border-blue-100"
+                                                            title="Message Admin About This Order">
+                                                            <i class="fas fa-comment"></i>
+                                                            <span class="hidden sm:inline">Message</span>
+                                                        </button>
+                                                        <button onclick="deleteOrderGroup('{{ $groupCode }}')"
+                                                            class="inline-flex items-center gap-1 text-red-600 hover:text-red-800 px-3 py-1.5 rounded-lg hover:bg-red-50 border border-red-100"
+                                                            title="Delete Order Group">
+                                                            <i class="fas fa-trash"></i>
+                                                            <span class="hidden sm:inline">Delete</span>
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="7" class="p-8 text-center text-gray-400">
+                                                <td colspan="8" class="p-8 text-center text-gray-400">
                                                     <div class="flex flex-col items-center gap-2">
                                                         <i class="fas fa-shopping-cart text-4xl text-gray-300"></i>
                                                         <p class="text-lg font-semibold">No orders yet</p>
@@ -297,7 +346,182 @@
         </div>
     </div>
 
+    <!-- Message Admin Modal -->
+    <div id="messageModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg max-w-2xl w-full">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold">Message Admin</h3>
+                        <button onclick="closeMessageModal()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <form id="messageForm">
+                        <div class="mb-4">
+                            <label for="orderGroup" class="block text-sm font-medium text-gray-700 mb-2">Order Group</label>
+                            <input type="text" id="orderGroup" name="orderGroup" readonly 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
+                        </div>
+                        <div class="mb-4">
+                            <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                            <input type="text" id="subject" name="subject" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Enter subject...">
+                        </div>
+                        <div class="mb-6">
+                            <label for="message" class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                            <textarea id="message" name="message" rows="6" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Describe your issue or question about this order..."></textarea>
+                        </div>
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" onclick="closeMessageModal()"
+                                class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Select all functionality
+        document.getElementById('select-all').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.order-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkDeleteButton();
+        });
+
+        // Individual checkbox functionality
+        document.querySelectorAll('.order-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateBulkDeleteButton);
+        });
+
+        function updateBulkDeleteButton() {
+            const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
+            const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+            
+            if (checkedBoxes.length > 0) {
+                bulkDeleteBtn.classList.remove('hidden');
+                bulkDeleteBtn.textContent = `Delete Selected (${checkedBoxes.length})`;
+            } else {
+                bulkDeleteBtn.classList.add('hidden');
+            }
+        }
+
+        // Bulk delete functionality
+        document.getElementById('bulk-delete-btn').addEventListener('click', function() {
+            const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
+            const groupCodes = Array.from(checkedBoxes).map(cb => cb.value);
+            
+            if (groupCodes.length === 0) return;
+
+            Swal.fire({
+                title: 'Delete Selected Orders?',
+                text: `Are you sure you want to delete ${groupCodes.length} order group(s)? This action cannot be undone.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete them!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    bulkDeleteOrders(groupCodes);
+                }
+            });
+        });
+
+        function bulkDeleteOrders(groupCodes) {
+            fetch('/user/orders/bulk-delete', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ groupCodes: groupCodes })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: data.message || 'Failed to delete orders'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Error deleting orders'
+                });
+            });
+        }
+
+        // Time filter functionality
+        document.getElementById('time-filter').addEventListener('change', function() {
+            const timeFilter = this.value;
+            const rows = document.querySelectorAll('tbody tr');
+            const now = new Date();
+            
+            rows.forEach(row => {
+                const dateCell = row.querySelector('td:nth-child(2) span');
+                if (!dateCell) return;
+                
+                const orderDate = new Date(dateCell.textContent);
+                let show = true;
+                
+                switch(timeFilter) {
+                    case 'today':
+                        show = orderDate.toDateString() === now.toDateString();
+                        break;
+                    case 'week':
+                        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        show = orderDate >= weekAgo;
+                        break;
+                    case 'month':
+                        const monthAgo = new Date(now.getFullYear(), now.getMonth(), 1);
+                        show = orderDate >= monthAgo;
+                        break;
+                    case 'quarter':
+                        const quarterStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+                        show = orderDate >= quarterStart;
+                        break;
+                    case 'year':
+                        const yearStart = new Date(now.getFullYear(), 0, 1);
+                        show = orderDate >= yearStart;
+                        break;
+                    default:
+                        show = true;
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+        });
+
         // Status filter functionality
         document.getElementById('status-filter').addEventListener('change', function() {
             const status = this.value;
@@ -369,5 +593,219 @@
                 closeOrderModal();
             }
         });
+
+        // Message admin functionality
+        function messageAdmin(groupCode, customerName) {
+            document.getElementById('orderGroup').value = groupCode;
+            document.getElementById('messageModal').classList.remove('hidden');
+        }
+
+        function closeMessageModal() {
+            document.getElementById('messageModal').classList.add('hidden');
+            document.getElementById('messageForm').reset();
+        }
+
+        // Handle message form submission
+        document.getElementById('messageForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {
+                orderGroup: formData.get('orderGroup'),
+                subject: formData.get('subject'),
+                message: formData.get('message')
+            };
+
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+
+            fetch('/user/message-admin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Message Sent!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    closeMessageModal();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: data.message || 'Failed to send message'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Error sending message'
+                });
+            })
+            .finally(() => {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+
+        // Close message modal when clicking outside
+        document.getElementById('messageModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeMessageModal();
+            }
+        });
+
+        // Delete individual order group
+        function deleteOrderGroup(groupCode) {
+            Swal.fire({
+                title: 'Delete Order Group?',
+                text: `Are you sure you want to delete order group ${groupCode}? This action cannot be undone.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/user/orders/group/${groupCode}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: data.message || 'Failed to delete order'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Error deleting order'
+                        });
+                    });
+                }
+            });
+        }
+
+        // Reorder functionality
+        function reorderGroup(groupCode) {
+            if (!confirm('Are you sure you want to reorder this order? This will create a new order with the same items.')) {
+                return;
+            }
+
+            // Show loading state
+            const button = event.target.closest('button');
+            const originalContent = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span class="hidden sm:inline">Processing...</span>';
+            button.disabled = true;
+
+            // Make AJAX request
+            fetch(`/user/reorder/${groupCode}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showToast('Order reordered successfully!', 'success');
+                    
+                    // Optionally redirect to orders page or refresh
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast(data.message || 'Failed to reorder. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred. Please try again.', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                button.innerHTML = originalContent;
+                button.disabled = false;
+            });
+        }
+
+        // Reset filters
+        document.getElementById('reset-filters').addEventListener('click', function() {
+            document.getElementById('status-filter').value = '';
+            document.getElementById('time-filter').value = '';
+            document.getElementById('search-group').value = '';
+            document.getElementById('date-range').value = '';
+            document.getElementById('select-all').checked = false;
+            
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+            
+            const checkboxes = document.querySelectorAll('.order-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            updateBulkDeleteButton();
+        });
+
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500'
+            };
+            
+            toast.className = `fixed bottom-6 right-6 ${colors[type]} text-white text-sm px-4 py-3 rounded-lg shadow-lg z-50`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
     </script>
 @endsection

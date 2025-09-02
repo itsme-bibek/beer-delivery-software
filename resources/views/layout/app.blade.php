@@ -11,7 +11,7 @@
     <!--     Fonts and icons     -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
     <!-- Font Awesome Icons -->
-    <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Nucleo Icons -->
     <link href="{{ asset('./assets/css/nucleo-icons.css') }}" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,6 +21,27 @@
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <!-- Main Styling -->
     <link href="{{ asset('./assets/css/soft-ui-dashboard-tailwind.css?v=1.0.5') }}" rel="stylesheet" />
+    
+    <!-- Custom Icon Styles -->
+    <style>
+        .fas, .fa {
+            display: inline-block !important;
+            font-style: normal !important;
+            font-variant: normal !important;
+            text-rendering: auto !important;
+            -webkit-font-smoothing: antialiased !important;
+        }
+        
+        .sidebar-icon {
+            font-size: 1rem !important;
+            line-height: 1 !important;
+            color: #1e293b !important; /* slate-800 */
+        }
+        
+        .sidebar-icon.active {
+            color: #ffffff !important;
+        }
+    </style>
     <!-- Nepcha Analytics (nepcha.com) -->
     <!-- Nepcha is a easy-to-use web analytics. No cookies and fully compliant with GDPR, CCPA and PECR. -->
     <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script>
@@ -149,6 +170,8 @@
 
 <!-- github button -->
 <script async defer src="https://buttons.github.io/buttons.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- main script file  -->
 <script src="{{ asset('./assets/js/soft-ui-dashboard-tailwind.js?v=1.0.5') }}" async></script>
 
