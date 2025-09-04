@@ -302,15 +302,25 @@
                     <tr>
                         <td>
                             <div class="beer-info">
-                                <img src="{{ asset('storage/' . $order->image) }}" alt="{{ $order->beer->name }}">
-                                <div>
-                                    <strong>{{ $order->beer->name }}</strong><br>
-                                    <small>{{ $order->beer->description ?? 'Premium craft beer' }}</small>
-                                </div>
+                                @if($order->beer)
+                                    <img src="{{ asset('storage/' . $order->beer->image) }}" alt="{{ $order->beer->name }}">
+                                    <div>
+                                        <strong>{{ $order->beer->name }}</strong><br>
+                                        <small>{{ $order->beer->description ?? 'Premium craft beer' }}</small>
+                                    </div>
+                                @else
+                                    <div class="w-12 h-12 rounded bg-gray-200 flex items-center justify-center">
+                                        <i class="fas fa-beer text-gray-500"></i>
+                                    </div>
+                                    <div>
+                                        <strong>Unknown Beer</strong><br>
+                                        <small>Beer information not available</small>
+                                    </div>
+                                @endif
                             </div>
                         </td>
                         <td>{{ $order->quantity }}</td>
-                        <td>${{ number_format($order->beer->price, 2) }}</td>
+                        <td>${{ number_format($order->beer->price ?? 0, 2) }}</td>
                         <td>${{ number_format($order->total_price, 2) }}</td>
                     </tr>
                 @endforeach

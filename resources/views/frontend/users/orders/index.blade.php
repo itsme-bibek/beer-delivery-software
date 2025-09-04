@@ -1,7 +1,7 @@
 @extends('layout.app')
 
 @section('main')
-    <main class="ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen rounded-xl transition-all duration-200">
+    <main class="ease-soft-in-out relative h-full max-h-screen rounded-xl transition-all duration-200">
         <!-- Navbar -->
         <nav
             class="relative flex flex-wrap items-center justify-between px-0 py-2 mx-6 transition-all shadow-none duration-250 ease-soft-in rounded-2xl lg:flex-nowrap lg:justify-start">
@@ -172,11 +172,19 @@
                                                     <div class="flex flex-col items-center space-y-1">
                                                         @foreach ($groupOrders->take(3) as $order)
                                                             <div class="flex items-center justify-center gap-2">
-                                                                <img src="{{ asset('storage/' . $order->image) }}"
-                                                                    alt="{{ $order->beer->name }}"
-                                                                    class="w-6 h-6 rounded object-cover">
-                                                                <span class="text-xs text-gray-700">{{ $order->beer->name }}
-                                                                    ({{ $order->quantity }})</span>
+                                                                @if($order->beer)
+                                                                    <img src="{{ asset('storage/' . $order->beer->image) }}"
+                                                                        alt="{{ $order->beer->name }}"
+                                                                        class="w-6 h-6 rounded object-cover">
+                                                                    <span class="text-xs text-gray-700">{{ $order->beer->name }}
+                                                                        ({{ $order->quantity }})</span>
+                                                                @else
+                                                                    <div class="w-6 h-6 rounded bg-gray-200 flex items-center justify-center">
+                                                                        <i class="fas fa-beer text-xs text-gray-500"></i>
+                                                                    </div>
+                                                                    <span class="text-xs text-gray-500">Unknown Beer
+                                                                        ({{ $order->quantity }})</span>
+                                                                @endif
                                                             </div>
                                                         @endforeach
                                                         @if ($groupOrders->count() > 3)

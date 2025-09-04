@@ -242,18 +242,28 @@
                         <tr>
                             <td>
                                 <div class="beer-info">
-                                    <img class="beer-image" src="{{ public_path('storage/' . $order->beer->image) }}"
-                                        alt="{{ $order->beer->name }}">
-                                    <div>
-                                        <div class="beer-name">{{ $order->beer->name }}</div>
-                                        <div class="beer-description">
-                                            {{ $order->beer->description ?? 'Premium craft beer' }}
+                                    @if($order->beer)
+                                        <img class="beer-image" src="{{ public_path('storage/' . $order->beer->image) }}"
+                                            alt="{{ $order->beer->name }}">
+                                        <div>
+                                            <div class="beer-name">{{ $order->beer->name }}</div>
+                                            <div class="beer-description">
+                                                {{ $order->beer->description ?? 'Premium craft beer' }}
+                                            </div>
                                         </div>
-                                    </div>
+                                    @else
+                                        <div class="w-12 h-12 rounded bg-gray-200 flex items-center justify-center">
+                                            <i class="fas fa-beer text-gray-500"></i>
+                                        </div>
+                                        <div>
+                                            <div class="beer-name">Unknown Beer</div>
+                                            <div class="beer-description">Beer information not available</div>
+                                        </div>
+                                    @endif
                                 </div>
                             </td>
                             <td>{{ $order->quantity }}</td>
-                            <td>${{ number_format($order->beer->price, 2) }}</td>
+                            <td>${{ number_format($order->beer->price ?? 0, 2) }}</td>
                             <td>${{ number_format($order->total_price, 2) }}</td>
                         </tr>
                     @endforeach

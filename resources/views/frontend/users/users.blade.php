@@ -1,7 +1,7 @@
 @extends('layout.app')
 
 @section('main')
-    <main class="ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen rounded-xl transition-all duration-200">
+    <main class="ease-soft-in-out relative h-full max-h-screen rounded-xl transition-all duration-200">
         <!-- Navbar -->
         <nav class="relative flex flex-wrap items-center justify-between px-0 py-2 mx-6 transition-all shadow-none duration-250 ease-soft-in rounded-2xl lg:flex-nowrap lg:justify-start"
             navbar-main navbar-scroll="true">
@@ -123,7 +123,7 @@
                                             This Month
                                         </p>
                                         <h5 class="mb-0 font-bold">
-                                            {{ number_format($monthOrders ?? 0) }}
+                                            {{ number_format($monthlyOrders ?? 0) }}
                                         </h5>
                                         <p class="mt-1 text-xxs text-slate-400">orders placed in {{ now()->format('M') }}
                                         </p>
@@ -226,12 +226,25 @@
                 <div class="w-full px-3 mb-6 lg:mb-0 lg:w-8/12 lg:flex-none">
                     <div class="relative flex flex-col min-w-0 break-words bg-white shadow-lg rounded-2xl bg-clip-border">
                         <div class="bg-gray-50 border-b border-gray-200 mb-0 rounded-t-2xl p-6 pb-0">
-                            <h6 class="text-lg font-semibold text-gray-800">Recent Order Groups</h6>
-                            <p class="text-sm text-slate-500 mt-1">
-                                <i class="fa fa-arrow-up text-lime-500"></i>
-                                <span class="font-semibold">{{ $recentOrders->count() }} recent order groups</span> from
-                                your shopping
-                            </p>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h6 class="text-lg font-semibold text-gray-800">Recent Order Groups</h6>
+                                    <p class="text-sm text-slate-500 mt-1">
+                                        <i class="fa fa-arrow-up text-lime-500"></i>
+                                        <span class="font-semibold">{{ $recentOrders->count() }} recent order groups</span> from
+                                        your shopping
+                                        @if($recentOrders->count() > 0)
+                                            <span class="text-xs text-gray-400 ml-2">(Last updated: {{ now()->format('M d, Y H:i') }})</span>
+                                        @endif
+                                    </p>
+                                </div>
+                                @if($recentOrders->count() > 0)
+                                    <a href="{{ route('my-orders') }}" 
+                                       class="bg-gradient-to-tl from-blue-500 to-cyan-400 px-4 py-2 rounded-lg text-white text-sm font-semibold hover:shadow-lg transition-all">
+                                        <i class="fas fa-list mr-2"></i>View All
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                         <div class="flex-auto p-6 px-0 pb-2">
                             <div class="overflow-x-auto">
@@ -288,6 +301,26 @@
                                                         <span class="text-sm font-semibold">{{ $totalItems }}</span>
                                                         <p class="text-xs text-slate-400">{{ $groupOrders->count() }}
                                                             types</p>
+                                                        <div class="mt-1">
+                                                            @foreach($groupOrders->take(2) as $order)
+                                                                @php
+                                                                    $beerName = 'Unknown Beer';
+                                                                    if (is_object($order) && isset($order->beer) && is_object($order->beer)) {
+                                                                        $beerName = $order->beer->name ?? 'Unknown Beer';
+                                                                    } elseif (is_array($order) && isset($order['beer']) && is_array($order['beer'])) {
+                                                                        $beerName = $order['beer']['name'] ?? 'Unknown Beer';
+                                                                    }
+                                                                @endphp
+                                                                <span class="inline-block bg-gray-100 text-xs text-gray-600 px-2 py-1 rounded mr-1 mb-1">
+                                                                    {{ $beerName }}
+                                                                </span>
+                                                            @endforeach
+                                                            @if($groupOrders->count() > 2)
+                                                                <span class="inline-block bg-gray-100 text-xs text-gray-600 px-2 py-1 rounded">
+                                                                    +{{ $groupOrders->count() - 2 }} more
+                                                                </span>
+                                                            @endif
+                                                        </div>
                                                     </div>
                                                 </td>
                                                 <td class="p-4 align-middle bg-transparent whitespace-nowrap text-center">
@@ -337,8 +370,15 @@
                                         @empty
                                             <tr>
                                                 <td colspan="6" class="p-6 text-center text-slate-400">
-                                                    No orders found. <a href="{{ route('buybeer') }}"
-                                                        class="text-blue-500 hover:underline">Start shopping!</a>
+                                                    <div class="flex flex-col items-center py-8">
+                                                        <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-4"></i>
+                                                        <p class="text-lg font-medium text-gray-500 mb-2">No orders yet</p>
+                                                        <p class="text-sm text-gray-400 mb-4">Start your beer shopping journey!</p>
+                                                        <a href="{{ route('buybeer') }}"
+                                                            class="bg-gradient-to-tl from-blue-500 to-cyan-400 px-6 py-2 rounded-lg text-white text-sm font-semibold hover:shadow-lg transition-all">
+                                                            <i class="fas fa-beer mr-2"></i>Browse Beers
+                                                        </a>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @endforelse
@@ -481,6 +521,12 @@
                             }
                         }
                     });
+                })
+                .catch(error => {
+                    console.error('Error loading order status chart:', error);
+                    // Show a message if no data
+                    const chartContainer = document.getElementById('orderStatusChart').parentElement;
+                    chartContainer.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No order data available</div>';
                 });
 
             // Monthly Trends Chart
@@ -534,6 +580,12 @@
                             }
                         }
                     });
+                })
+                .catch(error => {
+                    console.error('Error loading monthly trends chart:', error);
+                    // Show a message if no data
+                    const chartContainer = document.getElementById('monthlyTrendsChart').parentElement;
+                    chartContainer.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No trend data available</div>';
                 });
 
             // Beer Popularity Chart
@@ -583,73 +635,80 @@
                             }
                         }
                     });
+                })
+                .catch(error => {
+                    console.error('Error loading beer popularity chart:', error);
+                    // Show a message if no data
+                    const chartContainer = document.getElementById('beerPopularityChart').parentElement;
+                    chartContainer.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No beer data available</div>';
                 });
         }
 
         // Reorder functionality
         function reorderGroup(groupCode) {
-            if (!confirm('Are you sure you want to reorder this order? This will create a new order with the same items.')) {
-                return;
-            }
+            Swal.fire({
+                title: 'Reorder Order?',
+                text: 'This will create a new order with the same items.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, reorder!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading state
+                    const button = event.target.closest('button');
+                    const originalContent = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    button.disabled = true;
 
-            // Show loading state
-            const button = event.target.closest('button');
-            const originalContent = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            button.disabled = true;
-
-            // Make AJAX request
-            fetch(`/user/reorder/${groupCode}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    // Make AJAX request
+                    fetch(`/user/reorder/${groupCode}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show success message
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: 'Order reordered successfully!',
+                                confirmButtonColor: '#3085d6',
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: data.message || 'Failed to reorder. Please try again.',
+                                confirmButtonColor: '#3085d6',
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'An error occurred. Please try again.',
+                            confirmButtonColor: '#3085d6',
+                        });
+                    })
+                    .finally(() => {
+                        // Restore button state
+                        button.innerHTML = originalContent;
+                        button.disabled = false;
+                    });
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success message
-                    showToast('Order reordered successfully!', 'success');
-                    
-                    // Optionally redirect to orders page or refresh
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    showToast(data.message || 'Failed to reorder. Please try again.', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('An error occurred. Please try again.', 'error');
-            })
-            .finally(() => {
-                // Restore button state
-                button.innerHTML = originalContent;
-                button.disabled = false;
             });
         }
 
-        // Toast notification function
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.textContent = message;
-            
-            const colors = {
-                success: 'bg-green-500',
-                error: 'bg-red-500',
-                info: 'bg-blue-500'
-            };
-            
-            toast.className = `fixed bottom-6 right-6 ${colors[type]} text-white text-sm px-4 py-3 rounded-lg shadow-lg z-50`;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
+
     </script>
 @endsection

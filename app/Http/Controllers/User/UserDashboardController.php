@@ -20,11 +20,25 @@ class UserDashboardController extends Controller
         
         // Recent orders grouped by group_code (last 5 groups)
         $recentOrders = $user->orders()
-            ->with('beer')
+            ->with(['beer' => function($query) {
+                $query->select('id', 'name', 'price');
+            }])
+            ->whereNotNull('group_code')
+            ->whereNotNull('beer_id')
             ->latest()
             ->get()
             ->groupBy('group_code')
             ->take(5);
+        
+        // Ensure each order in the groups has the beer relationship loaded
+        $recentOrders = $recentOrders->map(function($groupOrders) {
+            return $groupOrders->map(function($order) {
+                if (!$order->relationLoaded('beer')) {
+                    $order->load('beer');
+                }
+                return $order;
+            });
+        });
         
         // This month's orders
         $monthlyOrders = $user->orders()
@@ -43,6 +57,11 @@ class UserDashboardController extends Controller
             ->orderBy('order_count', 'desc')
             ->first();
         
+        // Get the beer object if favorite beer exists
+        if ($favoriteBeer && $favoriteBeer->beer) {
+            $favoriteBeer = $favoriteBeer->beer;
+        }
+        
         // Beer recommendations (exclude already ordered)
         $orderedBeerIds = $user->orders()->pluck('beer_id')->unique();
         $recommendations = Beer::whereNotIn('id', $orderedBeerIds)
@@ -59,8 +78,7 @@ class UserDashboardController extends Controller
         $ordersByStatus = $user->orders()
             ->select('status', \DB::raw('count(*) as count'))
             ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
+            ->get();
         
         // Last order date
         $lastOrder = $user->orders()->latest()->first();

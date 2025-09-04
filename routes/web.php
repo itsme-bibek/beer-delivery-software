@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\User\UserProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,6 +76,11 @@ Route::middleware(['auth'])->prefix('user')->group(function () {
 	Route::get('/messages/{message}', [MessageController::class, 'show'])->name('user.messages.show');
 	Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('user.messages.destroy');
 	Route::delete('/messages/bulk-delete', [MessageController::class, 'bulkDelete'])->name('user.messages.bulk-delete');
+	
+	// User Profile
+	Route::get('/profile', [UserProfileController::class, 'index'])->name('user.profile');
+	Route::put('/profile', [UserProfileController::class, 'update'])->name('user.profile.update');
+	Route::put('/profile/password', [UserProfileController::class, 'updatePassword'])->name('user.profile.password');
 });
 
 /*

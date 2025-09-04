@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <link rel="apple-touch-icon" sizes="76x76" href="./assets/img/apple-icon.png" />
     <link rel="icon" type="image/png" href="./assets/img/favicon.png" />
-    <title>Soft UI Dashboard Tailwind</title>
+    <title>peaksip - Beer Management System</title>
     <!--     Fonts and icons     -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
     <!-- Font Awesome Icons -->
@@ -41,6 +41,13 @@
         .sidebar-icon.active {
             color: #ffffff !important;
         }
+
+        /* Mobile responsive adjustments */
+        @media (max-width: 1279px) {
+            .xl\:ml-68\.5 {
+                margin-left: 0 !important;
+            }
+        }
     </style>
     <!-- Nepcha Analytics (nepcha.com) -->
     <!-- Nepcha is a easy-to-use web analytics. No cookies and fully compliant with GDPR, CCPA and PECR. -->
@@ -49,12 +56,18 @@
 </head>
 
 <body class="m-0 font-sans text-base antialiased font-normal leading-default bg-gray-50 text-slate-500">
+    <!-- Responsive Header for Mobile -->
+    @include('includes.header')
+    
     <!-- sidenav  -->
     @include('includes.sidebar')
 
     <!-- end sidenav -->
 
-    @yield('main')
+    <!-- Main Content Wrapper with Mobile Spacing -->
+    <div class="xl:ml-68.5 pt-16 xl:pt-0">
+        @yield('main')
+    </div>
 
     <div fixed-plugin>
         <a fixed-plugin-button
