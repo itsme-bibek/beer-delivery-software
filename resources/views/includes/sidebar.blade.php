@@ -71,6 +71,28 @@
                          <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Users Management</span>
                      </a>
                  </li>
+
+                 <li class="mt-0.5 w-full">
+                     <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors {{ request()->routeIs('admin.llbo-verifications*') ? 'bg-gradient-to-tl from-blue-500 to-cyan-400 text-white shadow-soft-2xl' : 'text-slate-700' }} rounded-lg"
+                         href="{{ route('admin.llbo-verifications.index') }}">
+                         <div
+                             class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg {{ request()->routeIs('admin.llbo-verifications*') ? 'bg-white' : 'bg-white bg-center stroke-0 text-center xl:p-2.5' }}">
+                             <i class="fas fa-id-card sidebar-icon"></i>
+                         </div>
+                         <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">LLBO Verifications</span>
+                     </a>
+                 </li>
+
+                 <li class="mt-0.5 w-full">
+                     <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors {{ request()->routeIs('admin.marketing-banners*') ? 'bg-gradient-to-tl from-blue-500 to-cyan-400 text-white shadow-soft-2xl' : 'text-slate-700' }} rounded-lg"
+                         href="{{ route('admin.marketing-banners.index') }}">
+                         <div
+                             class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg {{ request()->routeIs('admin.marketing-banners*') ? 'bg-white' : 'bg-white bg-center stroke-0 text-center xl:p-2.5' }}">
+                             <i class="fas fa-bullhorn sidebar-icon"></i>
+                         </div>
+                         <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Marketing Banners</span>
+                     </a>
+                 </li>
              @elseif (auth()->user() && auth()->user()->isUser())
                  <!-- User Navigation -->
                  <li class="mt-0.5 w-full">
@@ -103,6 +125,17 @@
                              <i class="fas fa-envelope sidebar-icon"></i>
                          </div>
                          <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">My Messages</span>
+                     </a>
+                 </li>
+
+                 <li class="mt-0.5 w-full">
+                     <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors {{ request()->routeIs('user.llbo-verification.*') ? 'bg-gradient-to-tl from-blue-500 to-cyan-400 text-white shadow-soft-2xl' : 'text-slate-700' }} rounded-lg"
+                         href="{{ route('user.llbo-verification.index') }}">
+                         <div
+                             class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg {{ request()->routeIs('user.llbo-verification.*') ? 'bg-white' : 'bg-white bg-center stroke-0 text-center xl:p-2.5' }}">
+                             <i class="fas fa-id-card sidebar-icon"></i>
+                         </div>
+                         <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">LLBO License</span>
                      </a>
                  </li>
 

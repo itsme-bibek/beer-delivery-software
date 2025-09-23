@@ -60,6 +60,20 @@
                             Users
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('admin.llbo-verifications.index') }}" 
+                           class="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.llbo-verifications*') ? 'bg-gradient-to-tl from-blue-500 to-cyan-400 text-white' : '' }}">
+                            <i class="fas fa-id-card w-5 h-5 mr-3"></i>
+                            LLBO Verifications
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.marketing-banners.index') }}" 
+                           class="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.marketing-banners*') ? 'bg-gradient-to-tl from-blue-500 to-cyan-400 text-white' : '' }}">
+                            <i class="fas fa-bullhorn w-5 h-5 mr-3"></i>
+                            Marketing Banners
+                        </a>
+                    </li>
                 @elseif (auth()->user() && auth()->user()->isUser())
                     <!-- User Mobile Navigation -->
                     <li>
@@ -81,6 +95,13 @@
                            class="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('user.messages.*') ? 'bg-gradient-to-tl from-blue-500 to-cyan-400 text-white' : '' }}">
                             <i class="fas fa-envelope w-5 h-5 mr-3"></i>
                             Messages
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('user.llbo-verification.index') }}" 
+                           class="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('user.llbo-verification.*') ? 'bg-gradient-to-tl from-blue-500 to-cyan-400 text-white' : '' }}">
+                            <i class="fas fa-id-card w-5 h-5 mr-3"></i>
+                            LLBO License
                         </a>
                     </li>
                     <li>
@@ -158,3 +179,5 @@
         });
     });
 </script>
+
+

@@ -22,8 +22,30 @@
     <!-- Main Styling -->
     <link href="{{ asset('./assets/css/soft-ui-dashboard-tailwind.css?v=1.0.5') }}" rel="stylesheet" />
     
-    <!-- Custom Icon Styles -->
+    <!-- Custom Icon Styles and Dark Mode -->
     <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-tertiary: #94a3b8;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border-color: #475569;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+
         .fas, .fa {
             display: inline-block !important;
             font-style: normal !important;
@@ -35,11 +57,61 @@
         .sidebar-icon {
             font-size: 1rem !important;
             line-height: 1 !important;
-            color: #1e293b !important; /* slate-800 */
+            color: var(--text-primary) !important;
         }
         
         .sidebar-icon.active {
             color: #ffffff !important;
+        }
+
+        /* Dark mode styles */
+        [data-theme="dark"] body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .bg-white {
+            background-color: var(--bg-secondary) !important;
+        }
+
+        [data-theme="dark"] .bg-gray-50 {
+            background-color: var(--bg-tertiary) !important;
+        }
+
+        [data-theme="dark"] .text-gray-800 {
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] .text-gray-600 {
+            color: var(--text-secondary) !important;
+        }
+
+        [data-theme="dark"] .text-gray-500 {
+            color: var(--text-tertiary) !important;
+        }
+
+        [data-theme="dark"] .text-slate-700 {
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] .text-slate-500 {
+            color: var(--text-secondary) !important;
+        }
+
+        [data-theme="dark"] .border-gray-200 {
+            border-color: var(--border-color) !important;
+        }
+
+        [data-theme="dark"] .border-gray-300 {
+            border-color: var(--border-color) !important;
+        }
+
+        [data-theme="dark"] .shadow-soft-xl {
+            box-shadow: 0 20px 27px var(--shadow-color) !important;
+        }
+
+        [data-theme="dark"] .shadow-lg {
+            box-shadow: 0 10px 15px var(--shadow-color) !important;
         }
 
         /* Mobile responsive adjustments */
@@ -47,6 +119,34 @@
             .xl\:ml-68\.5 {
                 margin-left: 0 !important;
             }
+        }
+
+        /* Dark mode toggle button */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-toggle i {
+            font-size: 1.2rem;
+            color: var(--text-primary);
         }
     </style>
     <!-- Nepcha Analytics (nepcha.com) -->
@@ -187,5 +287,43 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- main script file  -->
 <script src="{{ asset('./assets/js/soft-ui-dashboard-tailwind.js?v=1.0.5') }}" async></script>
+
+<!-- Dark Mode Toggle Button -->
+<div class="theme-toggle" onclick="toggleTheme()">
+    <i class="fas fa-moon" id="theme-icon"></i>
+</div>
+
+<!-- Dark Mode Script -->
+<script>
+    // Initialize theme from localStorage or default to light
+    function initializeTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        setTheme(savedTheme);
+    }
+
+    // Set theme
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        const themeIcon = document.getElementById('theme-icon');
+        
+        if (theme === 'dark') {
+            themeIcon.className = 'fas fa-sun';
+        } else {
+            themeIcon.className = 'fas fa-moon';
+        }
+        
+        localStorage.setItem('theme', theme);
+    }
+
+    // Toggle theme
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+    }
+
+    // Initialize theme on page load
+    document.addEventListener('DOMContentLoaded', initializeTheme);
+</script>
 
 </html>

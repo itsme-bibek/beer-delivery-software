@@ -12,6 +12,10 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\User\UserProfileController;
+use App\Http\Controllers\Admin\LlboVerificationController as AdminLlboController;
+use App\Http\Controllers\User\LlboVerificationController as UserLlboController;
+use App\Http\Controllers\Admin\MarketingBannerController as AdminMarketingController;
+use App\Http\Controllers\MarketingBannerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,12 +38,16 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Marketing Banner API Routes
+Route::get('/api/banners/active', [MarketingBannerController::class, 'getActiveBanners'])->name('api.banners.active');
+Route::get('/api/banner/current', [MarketingBannerController::class, 'getBannerForUser'])->name('api.banner.current');
+
 /*
 |--------------------------------------------------------------------------
 | User Routes (Protected by auth middleware)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->prefix('user')->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\EnsureLlboVerified::class])->prefix('user')->group(function () {
 	// Dashboard
 	Route::get('/dashboard', [Homecontroller::class, 'userhome'])->name('user-home');
 
@@ -81,7 +89,19 @@ Route::middleware(['auth'])->prefix('user')->group(function () {
 	Route::get('/profile', [UserProfileController::class, 'index'])->name('user.profile');
 	Route::put('/profile', [UserProfileController::class, 'update'])->name('user.profile.update');
 	Route::put('/profile/password', [UserProfileController::class, 'updatePassword'])->name('user.profile.password');
+	
+	// LLBO Verification
+	Route::get('/llbo-verification', [UserLlboController::class, 'index'])->name('user.llbo-verification.index');
+	Route::get('/llbo-verification/create', [UserLlboController::class, 'create'])->name('user.llbo-verification.create');
+	Route::post('/llbo-verification', [UserLlboController::class, 'store'])->name('user.llbo-verification.store');
+	Route::put('/llbo-verification', [UserLlboController::class, 'update'])->name('user.llbo-verification.update');
+	Route::get('/llbo-verification/download', [UserLlboController::class, 'downloadDocument'])->name('user.llbo-verification.download');
 });
+
+// Waiting page (must be outside middleware to allow redirect)
+Route::middleware(['auth'])->get('/user/waiting-verification', function() {
+    return view('frontend.users.llbo-verification.waiting');
+})->name('user.waiting-verification');
 
 /*
 |--------------------------------------------------------------------------
@@ -130,4 +150,25 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 	Route::put('/users/{user}/role', [App\Http\Controllers\Admin\UserController::class, 'updateRole'])->name('users.update-role');
 	Route::delete('/users/{user}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
 	Route::delete('/users/bulk-delete', [App\Http\Controllers\Admin\UserController::class, 'bulkDelete'])->name('users.bulk-delete');
+	
+	// LLBO Verification Management
+	Route::get('/llbo-verifications', [AdminLlboController::class, 'index'])->name('llbo-verifications.index');
+	Route::get('/llbo-verifications/expiring', [AdminLlboController::class, 'expiringSoon'])->name('llbo-verifications.expiring');
+	Route::get('/llbo-verifications/{llboVerification}', [AdminLlboController::class, 'show'])->name('llbo-verifications.show');
+	Route::post('/llbo-verifications/{llboVerification}/verify', [AdminLlboController::class, 'verify'])->name('llbo-verifications.verify');
+	Route::post('/llbo-verifications/{llboVerification}/reminder', [AdminLlboController::class, 'sendReminder'])->name('llbo-verifications.reminder');
+	Route::post('/llbo-verifications/bulk-action', [AdminLlboController::class, 'bulkAction'])->name('llbo-verifications.bulk-action');
+	// LLBO admin download document
+	Route::get('/llbo-verifications/{llboVerification}/download', [AdminLlboController::class, 'download'])->name('llbo-verifications.download');
+	
+	// Marketing Banner Management
+	Route::get('/marketing-banners', [AdminMarketingController::class, 'index'])->name('marketing-banners.index');
+	Route::get('/marketing-banners/create', [AdminMarketingController::class, 'create'])->name('marketing-banners.create');
+	Route::post('/marketing-banners', [AdminMarketingController::class, 'store'])->name('marketing-banners.store');
+	Route::get('/marketing-banners/{marketingBanner}', [AdminMarketingController::class, 'show'])->name('marketing-banners.show');
+	Route::get('/marketing-banners/{marketingBanner}/edit', [AdminMarketingController::class, 'edit'])->name('marketing-banners.edit');
+	Route::put('/marketing-banners/{marketingBanner}', [AdminMarketingController::class, 'update'])->name('marketing-banners.update');
+	Route::delete('/marketing-banners/{marketingBanner}', [AdminMarketingController::class, 'destroy'])->name('marketing-banners.destroy');
+	Route::post('/marketing-banners/{marketingBanner}/toggle', [AdminMarketingController::class, 'toggleStatus'])->name('marketing-banners.toggle');
+	Route::post('/marketing-banners/reorder', [AdminMarketingController::class, 'reorder'])->name('marketing-banners.reorder');
 });

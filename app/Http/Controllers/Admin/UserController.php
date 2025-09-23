@@ -48,7 +48,7 @@ class UserController extends Controller
     {
         $user->load(['orders' => function($query) {
             $query->latest()->take(10);
-        }]);
+        }, 'llboVerification']);
 
         $stats = [
             'total_orders' => $user->orders()->count(),

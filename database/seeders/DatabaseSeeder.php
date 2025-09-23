@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
             BeerSeeder::class,
             OrderSeeder::class,
             MessageSeeder::class,
+            LlboVerificationSeeder::class,
+            MarketingBannerSeeder::class,
         ]);
     }
 }

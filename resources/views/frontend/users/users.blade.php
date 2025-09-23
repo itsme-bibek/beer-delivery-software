@@ -2,6 +2,10 @@
 
 @section('main')
     <main class="ease-soft-in-out relative h-full max-h-screen rounded-xl transition-all duration-200">
+        <!-- Marketing Banner -->
+        <div id="banner-container" class="w-full px-6 py-4">
+            <!-- Banner will be loaded here via JavaScript -->
+        </div>
         <!-- Navbar -->
         <nav class="relative flex flex-wrap items-center justify-between px-0 py-2 mx-6 transition-all shadow-none duration-250 ease-soft-in rounded-2xl lg:flex-nowrap lg:justify-start"
             navbar-main navbar-scroll="true">
@@ -709,6 +713,81 @@
             });
         }
 
+        // Load Marketing Banner
+        function loadMarketingBanner() {
+            fetch('/api/banner/current')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && !localStorage.getItem('banner_closed')) {
+                        const bannerContainer = document.getElementById('banner-container');
+                        if (bannerContainer) {
+                            bannerContainer.innerHTML = `
+                                <div id="marketing-banner" class="relative w-full mb-6 rounded-2xl overflow-hidden shadow-soft-xl bg-gradient-to-r from-blue-600 to-purple-600">
+                                    <div class="absolute inset-0 bg-black bg-opacity-20"></div>
+                                    
+                                    <div class="relative flex flex-col lg:flex-row items-center p-6 lg:p-8">
+                                        <div class="w-full lg:w-1/3 mb-4 lg:mb-0 lg:pr-6">
+                                            <img src="${data.image_url}" 
+                                                 alt="${data.title}" 
+                                                 class="w-full h-48 lg:h-64 object-cover rounded-xl shadow-lg">
+                                        </div>
+                                        
+                                        <div class="w-full lg:w-2/3 text-center lg:text-left">
+                                            ${data.welcome_message ? `
+                                                <div class="mb-2">
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20 text-white">
+                                                        <i class="fas fa-star mr-2"></i>
+                                                        ${data.welcome_message}
+                                                    </span>
+                                                </div>
+                                            ` : ''}
+                                            
+                                            <h2 class="text-2xl lg:text-3xl font-bold text-white mb-3">
+                                                ${data.title}
+                                            </h2>
+                                            
+                                            ${data.description ? `
+                                                <p class="text-white text-opacity-90 mb-4 text-lg">
+                                                    ${data.description}
+                                                </p>
+                                            ` : ''}
+                                            
+                                            ${data.button_text && data.button_url ? `
+                                                <a href="${data.button_url}" 
+                                                   class="inline-flex items-center px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-lg hover:shadow-xl">
+                                                    ${data.button_text}
+                                                    <i class="fas fa-arrow-right ml-2"></i>
+                                                </a>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                    
+                                    <button onclick="closeBanner()" 
+                                            class="absolute top-4 right-4 w-8 h-8 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center text-white transition-all duration-200">
+                                        <i class="fas fa-times text-sm"></i>
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.log('No marketing banner available');
+                });
+        }
+
+        function closeBanner() {
+            const banner = document.getElementById('marketing-banner');
+            if (banner) {
+                banner.style.display = 'none';
+                localStorage.setItem('banner_closed', 'true');
+            }
+        }
+
+        // Load banner when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMarketingBanner();
+        });
 
     </script>
 @endsection

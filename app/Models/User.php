@@ -80,4 +80,36 @@ class User extends Authenticatable
     {
         return $this->hasMany(Message::class);
     }
+
+    /**
+     * User's LLBO verification relationship
+     */
+    public function llboVerification()
+    {
+        return $this->hasOne(LlboVerification::class);
+    }
+
+    /**
+     * Check if user has verified LLBO license
+     */
+    public function hasVerifiedLicense(): bool
+    {
+        return $this->llboVerification && $this->llboVerification->status === 'verified' && !$this->llboVerification->is_expired;
+    }
+
+    /**
+     * Get user's last purchase date
+     */
+    public function getLastPurchaseDate()
+    {
+        return $this->orders()->latest()->first()?->created_at;
+    }
+
+    /**
+     * Get user's total spent amount
+     */
+    public function getTotalSpent()
+    {
+        return $this->orders()->sum('total_price');
+    }
 }
