@@ -15,6 +15,14 @@ class Order extends Model
         'total_price',
         'group_code',
         'payment_method',
+        'delivery_note',
+        'delivery_slot',
+        'is_recurring',
+        'recurring_interval',
+    ];
+
+    protected $casts = [
+        'is_recurring' => 'boolean',
     ];
 
     public function user()

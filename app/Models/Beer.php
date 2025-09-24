@@ -41,7 +41,8 @@ class Beer extends Model
             return 'out_of_stock';
         }
         
-        if ($this->stock <= 10) {
+        $threshold = (int) config('beer.low_stock_threshold', 10);
+        if ($this->stock <= $threshold) {
             return 'low_stock';
         }
         

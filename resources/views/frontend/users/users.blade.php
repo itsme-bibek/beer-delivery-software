@@ -235,16 +235,18 @@
                                     <h6 class="text-lg font-semibold text-gray-800">Recent Order Groups</h6>
                                     <p class="text-sm text-slate-500 mt-1">
                                         <i class="fa fa-arrow-up text-lime-500"></i>
-                                        <span class="font-semibold">{{ $recentOrders->count() }} recent order groups</span> from
+                                        <span class="font-semibold">{{ $recentOrders->count() }} recent order groups</span>
+                                        from
                                         your shopping
-                                        @if($recentOrders->count() > 0)
-                                            <span class="text-xs text-gray-400 ml-2">(Last updated: {{ now()->format('M d, Y H:i') }})</span>
+                                        @if ($recentOrders->count() > 0)
+                                            <span class="text-xs text-gray-400 ml-2">(Last updated:
+                                                {{ now()->format('M d, Y H:i') }})</span>
                                         @endif
                                     </p>
                                 </div>
-                                @if($recentOrders->count() > 0)
-                                    <a href="{{ route('my-orders') }}" 
-                                       class="bg-gradient-to-tl from-blue-500 to-cyan-400 px-4 py-2 rounded-lg text-white text-sm font-semibold hover:shadow-lg transition-all">
+                                @if ($recentOrders->count() > 0)
+                                    <a href="{{ route('my-orders') }}"
+                                        class="bg-gradient-to-tl from-blue-500 to-cyan-400 px-4 py-2 rounded-lg text-white text-sm font-semibold hover:shadow-lg transition-all">
                                         <i class="fas fa-list mr-2"></i>View All
                                     </a>
                                 @endif
@@ -306,21 +308,33 @@
                                                         <p class="text-xs text-slate-400">{{ $groupOrders->count() }}
                                                             types</p>
                                                         <div class="mt-1">
-                                                            @foreach($groupOrders->take(2) as $order)
+                                                            @foreach ($groupOrders->take(2) as $order)
                                                                 @php
                                                                     $beerName = 'Unknown Beer';
-                                                                    if (is_object($order) && isset($order->beer) && is_object($order->beer)) {
-                                                                        $beerName = $order->beer->name ?? 'Unknown Beer';
-                                                                    } elseif (is_array($order) && isset($order['beer']) && is_array($order['beer'])) {
-                                                                        $beerName = $order['beer']['name'] ?? 'Unknown Beer';
+                                                                    if (
+                                                                        is_object($order) &&
+                                                                        isset($order->beer) &&
+                                                                        is_object($order->beer)
+                                                                    ) {
+                                                                        $beerName =
+                                                                            $order->beer->name ?? 'Unknown Beer';
+                                                                    } elseif (
+                                                                        is_array($order) &&
+                                                                        isset($order['beer']) &&
+                                                                        is_array($order['beer'])
+                                                                    ) {
+                                                                        $beerName =
+                                                                            $order['beer']['name'] ?? 'Unknown Beer';
                                                                     }
                                                                 @endphp
-                                                                <span class="inline-block bg-gray-100 text-xs text-gray-600 px-2 py-1 rounded mr-1 mb-1">
+                                                                <span
+                                                                    class="inline-block bg-gray-100 text-xs text-gray-600 px-2 py-1 rounded mr-1 mb-1">
                                                                     {{ $beerName }}
                                                                 </span>
                                                             @endforeach
-                                                            @if($groupOrders->count() > 2)
-                                                                <span class="inline-block bg-gray-100 text-xs text-gray-600 px-2 py-1 rounded">
+                                                            @if ($groupOrders->count() > 2)
+                                                                <span
+                                                                    class="inline-block bg-gray-100 text-xs text-gray-600 px-2 py-1 rounded">
                                                                     +{{ $groupOrders->count() - 2 }} more
                                                                 </span>
                                                             @endif
@@ -377,7 +391,8 @@
                                                     <div class="flex flex-col items-center py-8">
                                                         <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-4"></i>
                                                         <p class="text-lg font-medium text-gray-500 mb-2">No orders yet</p>
-                                                        <p class="text-sm text-gray-400 mb-4">Start your beer shopping journey!</p>
+                                                        <p class="text-sm text-gray-400 mb-4">Start your beer shopping
+                                                            journey!</p>
                                                         <a href="{{ route('buybeer') }}"
                                                             class="bg-gradient-to-tl from-blue-500 to-cyan-400 px-6 py-2 rounded-lg text-white text-sm font-semibold hover:shadow-lg transition-all">
                                                             <i class="fas fa-beer mr-2"></i>Browse Beers
@@ -482,7 +497,7 @@
                 </div>
             </div>
 
-            
+
         </div>
         <!-- end cards -->
     </main>
@@ -530,7 +545,8 @@
                     console.error('Error loading order status chart:', error);
                     // Show a message if no data
                     const chartContainer = document.getElementById('orderStatusChart').parentElement;
-                    chartContainer.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No order data available</div>';
+                    chartContainer.innerHTML =
+                        '<div class="flex items-center justify-center h-full text-gray-500">No order data available</div>';
                 });
 
             // Monthly Trends Chart
@@ -589,7 +605,8 @@
                     console.error('Error loading monthly trends chart:', error);
                     // Show a message if no data
                     const chartContainer = document.getElementById('monthlyTrendsChart').parentElement;
-                    chartContainer.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No trend data available</div>';
+                    chartContainer.innerHTML =
+                        '<div class="flex items-center justify-center h-full text-gray-500">No trend data available</div>';
                 });
 
             // Beer Popularity Chart
@@ -644,7 +661,8 @@
                     console.error('Error loading beer popularity chart:', error);
                     // Show a message if no data
                     const chartContainer = document.getElementById('beerPopularityChart').parentElement;
-                    chartContainer.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No beer data available</div>';
+                    chartContainer.innerHTML =
+                        '<div class="flex items-center justify-center h-full text-gray-500">No beer data available</div>';
                 });
         }
 
@@ -668,47 +686,48 @@
 
                     // Make AJAX request
                     fetch(`/user/reorder/${groupCode}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Show success message
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Success!',
-                                text: 'Order reordered successfully!',
-                                confirmButtonColor: '#3085d6',
-                            }).then(() => {
-                                window.location.reload();
-                            });
-                        } else {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                                    'content')
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Show success message
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: 'Order reordered successfully!',
+                                    confirmButtonColor: '#3085d6',
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Oops...',
+                                    text: data.message || 'Failed to reorder. Please try again.',
+                                    confirmButtonColor: '#3085d6',
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Oops...',
-                                text: data.message || 'Failed to reorder. Please try again.',
+                                text: 'An error occurred. Please try again.',
                                 confirmButtonColor: '#3085d6',
                             });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'An error occurred. Please try again.',
-                            confirmButtonColor: '#3085d6',
+                        })
+                        .finally(() => {
+                            // Restore button state
+                            button.innerHTML = originalContent;
+                            button.disabled = false;
                         });
-                    })
-                    .finally(() => {
-                        // Restore button state
-                        button.innerHTML = originalContent;
-                        button.disabled = false;
-                    });
                 }
             });
         }
@@ -718,6 +737,8 @@
             fetch('/api/banner/current')
                 .then(response => response.json())
                 .then(data => {
+                    // console.log('Banner Data:', data);
+
                     if (data && !localStorage.getItem('banner_closed')) {
                         const bannerContainer = document.getElementById('banner-container');
                         if (bannerContainer) {
@@ -734,31 +755,31 @@
                                         
                                         <div class="w-full lg:w-2/3 text-center lg:text-left">
                                             ${data.welcome_message ? `
-                                                <div class="mb-2">
-                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20 text-white">
-                                                        <i class="fas fa-star mr-2"></i>
-                                                        ${data.welcome_message}
-                                                    </span>
-                                                </div>
-                                            ` : ''}
+                                                                    <div class="mb-2">
+                                                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20 text-white">
+                                                                            <i class="fas fa-star mr-2"></i>
+                                                                            ${data.welcome_message}
+                                                                        </span>
+                                                                    </div>
+                                                                ` : ''}
                                             
                                             <h2 class="text-2xl lg:text-3xl font-bold text-white mb-3">
                                                 ${data.title}
                                             </h2>
                                             
                                             ${data.description ? `
-                                                <p class="text-white text-opacity-90 mb-4 text-lg">
-                                                    ${data.description}
-                                                </p>
-                                            ` : ''}
+                                                                    <p class="text-white text-opacity-90 mb-4 text-lg">
+                                                                        ${data.description}
+                                                                    </p>
+                                                                ` : ''}
                                             
                                             ${data.button_text && data.button_url ? `
-                                                <a href="${data.button_url}" 
-                                                   class="inline-flex items-center px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-lg hover:shadow-xl">
-                                                    ${data.button_text}
-                                                    <i class="fas fa-arrow-right ml-2"></i>
-                                                </a>
-                                            ` : ''}
+                                                                    <a href="${data.button_url}" 
+                                                                       class="inline-flex items-center px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-lg hover:shadow-xl">
+                                                                        ${data.button_text}
+                                                                        <i class="fas fa-arrow-right ml-2"></i>
+                                                                    </a>
+                                                                ` : ''}
                                         </div>
                                     </div>
                                     
@@ -788,6 +809,5 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadMarketingBanner();
         });
-
     </script>
 @endsection

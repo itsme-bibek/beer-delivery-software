@@ -59,6 +59,11 @@
                     <div class="mb-4">
                         <h4 class="text-lg font-bold">Our Craft Beers</h4>
                         <p class="text-sm">Select from our premium collection of craft beers</p>
+                        @php $threshold = (int) config('beer.low_stock_threshold', 10); @endphp
+                        <div class="mt-3 p-3 rounded-lg bg-orange-50 border border-orange-200 text-orange-700 text-sm">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Low stock warning: items with stock ≤ {{ $threshold }} are marked as "Low Stock". Order soon.
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -140,6 +145,37 @@
                             <div id="cart-items"></div>
 
                             <div class="mt-6 border-t border-slate-200 pt-4">
+                                <!-- Preferred Delivery Slot -->
+                                <div class="mb-3 text-sm">
+                                    <label class="block text-xs text-slate-600 mb-1">Preferred Delivery Time</label>
+                                    <select id="delivery-slot" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">No preference</option>
+                                        <option>9:00 AM - 11:00 AM</option>
+                                        <option>11:00 AM - 1:00 PM</option>
+                                        <option>1:00 PM - 3:00 PM</option>
+                                        <option>3:00 PM - 5:00 PM</option>
+                                        <option>5:00 PM - 7:00 PM</option>
+                                    </select>
+                                </div>
+
+                                <!-- Delivery Note -->
+                                <div class="mb-3 text-sm">
+                                    <label class="block text-xs text-slate-600 mb-1">Delivery Instructions</label>
+                                    <textarea id="delivery-note" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Any preferred time, use this corridor, call on arrival, etc."></textarea>
+                                </div>
+
+                                <!-- Recurring -->
+                                <div class="mb-4 text-sm flex items-center gap-3">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" id="is-recurring" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2">Set as recurring order</span>
+                                    </label>
+                                    <select id="recurring-interval" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" disabled>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="biweekly">Bi-Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                </div>
                                 <div class="flex justify-between mb-2 text-sm">
                                     <span>Payment Method</span>
                                     <div class="text-right">
@@ -197,10 +233,19 @@
             const emptyCartMsg = document.getElementById('empty-cart-message');
             const cartTotal = document.getElementById('cart-total');
             const orderNowBtn = document.querySelector('.order-now-btn');
+            const deliverySlot = document.getElementById('delivery-slot');
+            const deliveryNote = document.getElementById('delivery-note');
+            const isRecurring = document.getElementById('is-recurring');
+            const recurringInterval = document.getElementById('recurring-interval');
 
             const currency = (n) => `$${Number(n).toFixed(2)}`;
 
             const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            // Enable/disable interval with checkbox
+            isRecurring.addEventListener('change', () => {
+                recurringInterval.disabled = !isRecurring.checked;
+            });
+
 
             // Toast helper
             const toast = (title, icon = 'success') => {
@@ -276,7 +321,11 @@
                             beer_id: i.id,
                             quantity: i.quantity
                         })),
-                        payment_method: payment
+                        payment_method: payment,
+                        delivery_slot: deliverySlot.value || null,
+                        delivery_note: deliveryNote.value || null,
+                        is_recurring: isRecurring.checked,
+                        recurring_interval: isRecurring.checked ? recurringInterval.value : null
                     };
 
                     fetch("{{ route('orders.bulk') }}", {

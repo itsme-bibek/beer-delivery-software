@@ -89,6 +89,20 @@
                     </div>
                 </div>
                 <div class="w-full px-3 mb-6 md:mb-0 md:w-1/2 lg:w-1/6">
+                    <div class="relative">
+                        <select id="delivery-slot-filter"
+                            class="block w-full px-3 py-2 text-sm font-normal text-gray-700 transition-all bg-white border border-gray-200 rounded-lg outline-none focus:shadow-soft-primary-outline focus:border-fuchsia-300">
+                            <option value="">All Delivery Slots</option>
+                            <option>9:00 AM - 11:00 AM</option>
+                            <option>11:00 AM - 1:00 PM</option>
+                            <option>1:00 PM - 3:00 PM</option>
+                            <option>3:00 PM - 5:00 PM</option>
+                            <option>5:00 PM - 7:00 PM</option>
+                            <option value="none">No preference</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="w-full px-3 mb-6 md:mb-0 md:w-1/2 lg:w-1/6">
                     <div class="relative flex items-center">
                         <span class="absolute ml-2">
                             <i class="fas fa-calendar text-slate-400"></i>
@@ -148,6 +162,14 @@
                                             <th
                                                 class="px-6 py-3 font-bold tracking-normal text-center uppercase align-middle bg-transparent border-b letter border-b-solid text-xxs whitespace-nowrap border-b-gray-200 text-slate-400 opacity-70">
                                                 Payment
+                                            </th>
+                                            <th
+                                                class="px-6 py-3 font-bold tracking-normal text-center uppercase align-middle bg-transparent border-b letter border-b-solid text-xxs whitespace-nowrap border-b-gray-200 text-slate-400 opacity-70">
+                                                Delivery Slot
+                                            </th>
+                                            <th
+                                                class="px-6 py-3 font-bold tracking-normal text-center uppercase align-middle bg-transparent border-b letter border-b-solid text-xxs whitespace-nowrap border-b-gray-200 text-slate-400 opacity-70">
+                                                Delivery Note
                                             </th>
                                             <th
                                                 class="px-6 py-3 font-bold tracking-normal text-center uppercase align-middle bg-transparent border-b letter border-b-solid text-xxs whitespace-nowrap border-b-gray-200 text-slate-400 opacity-70">
@@ -240,6 +262,12 @@
                                                         {{ $paymentText }}
                                                     </span>
                                                 </td>
+                                            <td class="p-4 align-middle bg-transparent whitespace-nowrap text-center">
+                                                <span class="text-xs font-semibold text-slate-600">{{ $firstOrder->delivery_slot ?? '—' }}</span>
+                                            </td>
+                                            <td class="p-4 align-middle bg-transparent whitespace-nowrap text-center">
+                                                <span class="text-xs text-slate-600 truncate inline-block max-w-[200px]" title="{{ $firstOrder->delivery_note }}">{{ $firstOrder->delivery_note ?? '—' }}</span>
+                                            </td>
                                                 <td class="p-4 align-middle bg-transparent whitespace-nowrap text-center">
                                                     <select onchange="updateGroupStatus('{{ $groupCode }}', this.value)" 
                                                             class="px-3 py-1.5 text-xs font-semibold rounded-lg border-0 focus:ring-2 focus:ring-blue-500">

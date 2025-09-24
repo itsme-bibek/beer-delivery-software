@@ -33,6 +33,10 @@ class OrderController extends Controller
         $request->validate([
             'beer_id'  => 'required|exists:beers,id',
             'quantity' => 'required|integer|min:1',
+            'delivery_note' => 'nullable|string|max:1000',
+            'delivery_slot' => 'nullable|string|max:50',
+            'is_recurring' => 'nullable|boolean',
+            'recurring_interval' => 'nullable|string|in:weekly,biweekly,monthly'
         ]);
 
         $beer = Beer::findOrFail($request->beer_id);
@@ -57,6 +61,10 @@ class OrderController extends Controller
                 'image'       => $beer->image ?? 'default-beer-image.jpg',
                 'group_code'  => 'ORD-' . Str::random(8),
                 'payment_method' => 'cod',
+                'delivery_note' => $request->delivery_note,
+                'delivery_slot' => $request->delivery_slot,
+                'is_recurring' => (bool) $request->boolean('is_recurring'),
+                'recurring_interval' => $request->recurring_interval,
             ]);
 
             // Reduce beer stock
@@ -73,6 +81,10 @@ class OrderController extends Controller
             'items.*.beer_id'      => 'required|integer|exists:beers,id',
             'items.*.quantity'     => 'required|integer|min:1',
             'payment_method'       => 'required|in:cod,card',
+            'delivery_note'        => 'nullable|string|max:1000',
+            'delivery_slot'        => 'nullable|string|max:50',
+            'is_recurring'         => 'nullable|boolean',
+            'recurring_interval'   => 'nullable|string|in:weekly,biweekly,monthly'
         ]);
 
         // First, validate all items have enough stock
@@ -112,6 +124,10 @@ class OrderController extends Controller
                     'image'       => $beer->image ?? 'default-beer-image.jpg',
                     'group_code'  => $groupCode,
                     'payment_method' => $request->payment_method,
+                    'delivery_note' => $request->delivery_note,
+                    'delivery_slot' => $request->delivery_slot,
+                    'is_recurring' => (bool) $request->boolean('is_recurring'),
+                    'recurring_interval' => $request->recurring_interval,
                 ]);
 
                 // Reduce beer stock

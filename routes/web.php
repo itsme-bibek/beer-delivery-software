@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\LlboVerificationController as AdminLlboController
 use App\Http\Controllers\User\LlboVerificationController as UserLlboController;
 use App\Http\Controllers\Admin\MarketingBannerController as AdminMarketingController;
 use App\Http\Controllers\MarketingBannerController;
+use App\Http\Controllers\User\InvoiceController as UserInvoiceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -96,6 +97,12 @@ Route::middleware(['auth', \App\Http\Middleware\EnsureLlboVerified::class])->pre
 	Route::post('/llbo-verification', [UserLlboController::class, 'store'])->name('user.llbo-verification.store');
 	Route::put('/llbo-verification', [UserLlboController::class, 'update'])->name('user.llbo-verification.update');
 	Route::get('/llbo-verification/download', [UserLlboController::class, 'downloadDocument'])->name('user.llbo-verification.download');
+
+	// Invoices (user)
+	Route::get('/invoices', [UserInvoiceController::class, 'index'])->name('user.invoices.index');
+	Route::get('/invoices/{invoice}', [UserInvoiceController::class, 'show'])->name('user.invoices.show');
+	Route::get('/invoices/{invoice}/download', [UserInvoiceController::class, 'download'])->name('user.invoices.download');
+	Route::get('/invoices-download/monthly', [UserInvoiceController::class, 'downloadMonthly'])->name('user.invoices.download-monthly');
 });
 
 // Waiting page (must be outside middleware to allow redirect)
